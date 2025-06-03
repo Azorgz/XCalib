@@ -1,0 +1,6 @@
+trajectory:
+  generate_plot: true
+  ate_save_root: null
+  add_cam_overlay: true
+  simple_cam_overlay: true
+  display_rig: false

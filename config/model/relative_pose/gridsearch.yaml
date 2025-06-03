@@ -1,0 +1,23 @@
+defaults:
+  - sampler: spacesampler
+  - regressedCfg: regressed
+
+name: gridsearch
+split_search: True
+max_batch_size: 150
+image_shape: [720, 1280]
+initial_pose: null
+initial_focal_length: null # >1 means FOV_cam2 > FOV_cam1
+softmin: false
+last: true
+max_depth: 25.
+enable_after: 0
+window: 10
+regression:
+  after_step: 3
+  after_sampler_end: true
+
+
+
+
+

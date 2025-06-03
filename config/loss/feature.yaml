@@ -1,0 +1,7 @@
+feature:
+  person_avg_height: 1.70
+  car_avg_height: 1.56
+  list_classes: ['car', 'person']
+  enable_after: 0
+  disable_after: 1000
+  weight: 1.

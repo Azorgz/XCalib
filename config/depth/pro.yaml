@@ -1,0 +1,6 @@
+name: pro
+
+pretrained: true
+inference_size: [480, 640]
+max_depth: 100
+checkpoint : /home/godeta/PycharmProjects/posenet/posenet/backbone/ml_depth_pro/checkpoints/depth_pro.pt

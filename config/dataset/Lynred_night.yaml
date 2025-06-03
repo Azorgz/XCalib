@@ -1,0 +1,22 @@
+Lynred_night:
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640]
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/Lynred/Night/master/infrared_corrected
+    - /media/godeta/T5 EVO/Datasets/Lynred/Night/master/visible
+    - /media/godeta/T5 EVO/Datasets/Lynred/Night/slave/visible
+    - /media/godeta/T5 EVO/Datasets/Lynred/Night/slave/infrared_corrected
+  cameras_name:
+    - IR
+    - RGB
+    - RGB2
+    - IR2
+  cameras_id:
+    - IR
+    - RGB
+    - RGB2
+    - IR2
+  stage: outdoor
+
+

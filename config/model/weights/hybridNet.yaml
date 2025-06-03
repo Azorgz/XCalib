@@ -1,0 +1,4 @@
+name: hybridNet
+
+pretrained: False
+layers: 4

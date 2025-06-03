@@ -1,0 +1,17 @@
+FLIR:
+  # Common configuration items (all datasets have these)
+  image_shape: [512, 640]
+  load_frame_paths: true
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/FLIR_ADAS_1_3_full/video/
+    - /media/godeta/T5 EVO/Datasets/FLIR_ADAS_v2/videos_processed/
+  cameras_name:
+    - ir_16bit
+    - rgb
+  cameras_id:
+    - IR
+    - RGB
+  folder: clip1  # in [clip1, clip2, clip3, clip4, video0, video1, video2, video3]
+  stage: outdoor
+

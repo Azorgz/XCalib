@@ -1,0 +1,4 @@
+name: simpleNet
+
+weight_sensitivity: 100
+pretrained: False

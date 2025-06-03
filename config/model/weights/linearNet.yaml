@@ -1,0 +1,4 @@
+name: linearNet
+
+pretrained: False
+layers: 1

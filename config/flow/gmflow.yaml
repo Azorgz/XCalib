@@ -1,0 +1,4 @@
+name: gmflow
+
+cache_path: .cache/gmflow_checkpoints
+scale_multiplier: 0.5

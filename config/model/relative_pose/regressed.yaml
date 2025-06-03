@@ -1,0 +1,13 @@
+name: regressed
+random_init: 0.00
+focal_length: #[1.0, 0.70] [0.90, 0.90, 0.90, 0.90]
+parameter_limitation:
+  x: null
+  y: null
+  z: 0
+  rx: null  # null or 0
+  ry: null  # null or 0
+  rz: null  # null or 0
+  f: null # [0.85, 0.95][0.90, 0.95] #[0.7, 1.0]
+freeze_center: true
+freeze_shear: true

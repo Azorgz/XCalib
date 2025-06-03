@@ -1,0 +1,4 @@
+name: convNet
+
+pretrained: False
+layers: 4

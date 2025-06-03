@@ -1,0 +1,31 @@
+Lynred_day:
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640] #[360, 480]
+  # Dataset-specific configuration items
+  root_cameras:
+
+#    - /home/godeta/Bureau/stereo_dataset/sequence_361/sequence_vis_2
+#    - /home/godeta/Bureau/stereo_dataset/sequence_361/sequence_ir_2/8bits
+
+#    - /home/godeta/Bureau/stereo_dataset/sequence_89/sequence_vis_2
+#    - /home/godeta/Bureau/stereo_dataset/sequence_89/sequence_ir_2/8bits
+
+    - /media/godeta/T5 EVO/Datasets/Lynred/Day/master/visible
+    - /media/godeta/T5 EVO/Datasets/Lynred/Day/master/infrared_corrected
+    - /media/godeta/T5 EVO/Datasets/Lynred/Day/slave/visible
+    - /media/godeta/T5 EVO/Datasets/Lynred/Day/slave/infrared_corrected
+
+  cameras_name:
+    - RGB
+    - IR
+    - RGB2
+    - IR2
+
+  cameras_id:
+    - RGB
+    - IR
+    - RGB2
+    - IR2
+  stage: outdoor
+
+

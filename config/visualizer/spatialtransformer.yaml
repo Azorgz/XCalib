@@ -1,0 +1,3 @@
+spatialtransformer:
+  num_vis_frames: 1
+  cam1Tocam2: false

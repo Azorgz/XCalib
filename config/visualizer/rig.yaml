@@ -1,0 +1,4 @@
+rig:
+  generate_plot: true
+  add_cam_overlay: true
+  simple_cam_overlay: true

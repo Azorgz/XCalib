@@ -1,0 +1,4 @@
+name: random
+
+# This clips the input video.
+num_frames: 8

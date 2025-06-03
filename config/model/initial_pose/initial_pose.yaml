@@ -1,0 +1,8 @@
+freeze_initial_pose: true
+freeze_axis:
+  x: False
+  y: True
+  z: True
+  rx: True
+  ry: False
+  rz: True

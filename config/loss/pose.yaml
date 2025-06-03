@@ -1,0 +1,9 @@
+pose:
+  weight: 1.0
+  enable_after: 200
+  disable_after: null
+  bidirectional: false
+  cross_loss: 50  # 0 means no cross loss. x>0 means after global step x
+  ponderate: true # ponderate the sum of losses according the ref value
+  coeff: [0.9, 0.1, 0.]  # NEC // GC // Depth
+  from_file: False

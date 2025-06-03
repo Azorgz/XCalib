@@ -1,0 +1,51 @@
+name: PoseNet
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11.9
+  - scipy
+  - hdf5
+  - h5py
+  - pillow
+  - hydra-core
+  - einops
+  - jaxtyping
+  - beartype
+  - matplotlib
+  - pip
+  - pip:
+      - setuptools
+      - numpy
+      - opencv-python
+      - lightning
+      - torch
+      - torchaudio
+      - torchvision
+      - torchmetrics
+      - tensordict
+      - tqdm
+      - tensorboard
+      - tensorboard-plugin-wit
+      - tensorboard-data-server
+      - huggingface-hub
+      - timm
+      - wandb
+      - urllib3
+      - oyaml
+      - kornia
+      - imagesize
+      - ultralytics
+      - git+https://github.com/openai/CLIP.git
+      - scikit-image
+      - gspread_dataframe
+      - oauth2client
+      - dacite
+      - black
+      - ruff
+      - timm
+      - plyfile
+      - click
+      - flow_vis_torch @ git+https://github.com/ChristophReich1996/Optical-Flow-Visualization-PyTorch@9177370c7c00b4b7dbe4deda6fed734fdff48b2c
+      - open3d

@@ -1,0 +1,21 @@
+MyDataset:
+  dataset_name: FLIR
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640] #[360, 480]
+  # Dataset-specific configuration items
+  root_cameras:
+    # VIS root folders
+    - /home/godeta/PycharmProjects/TIR2VIS/datasets/FLIR/FLIR_datasets/trainC_0
+    # IR root folders
+    - /home/godeta/PycharmProjects/TIR2VIS/datasets/FLIR/FLIR_datasets/trainB
+    # Number of files in each directory must match
+
+  cameras_name:
+    - RGB
+    - IR
+
+  cameras_id:
+    - RGB
+    - IR
+
+  stage: outdoor
