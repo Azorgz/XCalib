@@ -3,8 +3,8 @@ local:
   image_shape: [480, 640] #[360, 480]
   # Dataset-specific configuration items
   root_cameras:
-    - /home/godeta/PycharmProjects/posenet/datasets/lynred/visible
-    - /home/godeta/PycharmProjects/posenet/datasets/lynred/infrared
+    - /home/godeta/PycharmProjects/XCalib/datasets/lynred/visible
+    - /home/godeta/PycharmProjects/XCalib/datasets/lynred/infrared
   cameras_name:
     - RGB
     - IR

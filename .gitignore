@@ -1,0 +1,6 @@
+XCalib/backbone/Depth_anything/checkpoints/depth_anything_vitl14.pth
+XCalib/backbone/Depth_anything/metric_depth/checkpoints/depth_anything_metric_depth_outdoor.pt
+XCalib/backbone/Depth_anythingV2/checkpoints
+XCalib/backbone/ml_depth_pro/checkpoints/depth_pro.pt
+XCalib/third_party/CrossModalFlow/cross_raft_ckpt
+XCalib/third_party/ImagesCameras

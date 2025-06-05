@@ -1,0 +1,50 @@
+defaults:
+  - dataset: MyDataset
+  - frame_sampler: random
+  - depth: zoe
+  - model/relative_pose: regressed
+  - model/initial_pose: initial_pose
+  - model/spatial_transformer: spatial_transformer
+  - loss: [pose, flow]
+  - visualizer: [spatialtransformer]
+  - _self_
+
+trainer:
+  val_check_interval: 100
+  max_steps: 400
+
+model:
+  image_shape: [512, 640] #[480, 640][240, 320]
+
+wandb:
+  project: XCalib
+  mode: online #
+  name: null
+  group: null
+  tags:
+    - test
+  key: 76af4010fbf982ee82e751dd9028bbaa15212289
+
+datamodule:
+  cache_path: _cache
+  nb_cam: 2
+  shuffle: false
+  epochs: 25
+  overlap: 0
+  normalize_visible: false
+  normalize_infrared: true
+  equalize_visible: false
+  equalize_infrared: false
+  train:
+    seed: 42
+    rep_batch: 50
+  val:
+    seed: 1
+    rep_batch: 1
+
+model_wrapper:
+  patch_size: 32
+  lr: [5e-3, 5e-4]
+
+# In addition to being uploaded to wandb, the outputs are saved here.
+local_save_root: /home/godeta/PycharmProjects/XCalib/outputs/local

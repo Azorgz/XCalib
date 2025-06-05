@@ -4,4 +4,4 @@ inference_size: [420, 560]  # Must be // by 14
 max_depth: 70
 encoder: vitl  # ['vits', 'vitb', 'vitl', 'vitg']
 stage: outdoor
-checkpoint: /posenet/backbone/Depth_anythingV2/checkpoints/
+checkpoint: /XCalib/backbone/Depth_anythingV2/checkpoints/

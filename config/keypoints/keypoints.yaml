@@ -1,3 +1,0 @@
-method: LoFTR #['LoFTR', 'GFTTAffNetHardNet', 'KeyNetAffNetHardNet']
-number_keypoints: 2000
-scene: outdoor

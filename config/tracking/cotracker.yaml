@@ -1,6 +1,0 @@
-name: cotracker
-
-grid_size: 35
-similarity_threshold: 0.2
-interval: 5
-radius: 20

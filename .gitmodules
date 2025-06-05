@@ -1,0 +1,3 @@
+[submodule "XCalib/third_party/ImagesCameras"]
+	path = XCalib/third_party/ImagesCameras
+	url = https://github.com/Azorgz/ImagesCameras.git
