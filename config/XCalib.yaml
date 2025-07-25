@@ -18,12 +18,12 @@ model:
 
 wandb:
   project: XCalib
-  mode: online #
+  mode: online # disabled
   name: null
   group: null
   tags:
     - test
-  key: 76af4010fbf982ee82e751dd9028bbaa15212289
+  key:
 
 datamodule:
   cache_path: _cache
