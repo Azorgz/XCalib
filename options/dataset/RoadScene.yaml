@@ -1,0 +1,16 @@
+RoadScene:
+  # Common configuration items (all datasets have these)
+  image_shape: [512, 640]
+  load_frame_paths: true
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/RoadScene-master/crop_HR_visible/
+    - /media/godeta/T5 EVO/Datasets/RoadScene-master/infrared/
+  cameras_name:
+    - RGB
+    - IR
+  cameras_id:
+    - RGB
+    - IR
+  stage: outdoor
+

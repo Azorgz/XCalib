@@ -1,0 +1,12 @@
+root_cameras:
+  # VIS root folders
+  - /home/godeta/Images/ICCV/Data_publi/FLIR_night/vis
+  # IR root folders
+  - /home/godeta/Images/ICCV/Data_publi/FLIR_night/ir
+  # Number of files in each directory must match
+
+cameras_name:
+  - RGB
+  - IR
+
+stage: outdoor

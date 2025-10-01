@@ -1,0 +1,12 @@
+name: XCalib2
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11.9
+  - pip
+  - pip:
+      - tqdm
+      - jaxtyping
+      - ImagesCameras @ https://github.com/Azorgz/ImagesCameras.git

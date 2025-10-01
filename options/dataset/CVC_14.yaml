@@ -1,0 +1,17 @@
+CVC_14:
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640]
+  load_frame_paths: true
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/CVC-14
+  cameras_name:
+    - Visible
+    - FIR
+  cameras_id:
+    - Visible
+    - FIR
+  folder: Night # Literal in ["Night", "Day"]
+  stage: outdoor
+
+

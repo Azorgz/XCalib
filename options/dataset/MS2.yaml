@@ -1,0 +1,22 @@
+MS2:
+  # Common configuration items (all datasets have these)
+  image_shape: [512, 1280]
+  load_frame_paths: true
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/MS2/sync_data
+  cameras_name:
+    - rgb_left
+    - nir_left
+    - thr_left
+    - thr_right
+
+  cameras_id:
+    - RGB
+    - NIR
+    - IR
+    - IR2
+
+  folder: clip1  # in [clip1, clip2]
+  stage: outdoor
+

@@ -1,0 +1,19 @@
+LLVIPClean:
+  # Common configuration items (all datasets have these)
+  image_shape: [540, 960] #[360, 480]
+  # Dataset-specific configuration items
+  root_cameras:
+    - /home/godeta/Images/ICCV/Data_publi/LLVIP/vis
+    - /home/godeta/Images/ICCV/Data_publi/LLVIP/ir
+
+  cameras_name:
+    - vis
+    - ir
+
+  cameras_id:
+    - RGB
+    - IR
+
+  stage: outdoor
+
+

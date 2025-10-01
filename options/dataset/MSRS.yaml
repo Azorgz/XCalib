@@ -1,0 +1,16 @@
+MSRS:
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640]
+  load_frame_paths: true
+  # Dataset-specific configuration items
+  root_cameras:
+    - /media/godeta/T5 EVO/Datasets/MSRS-main/detection/vi
+    - /media/godeta/T5 EVO/Datasets/MSRS-main/detection/ir
+  cameras_name:
+    - RGB
+    - IR
+  cameras_id:
+    - RGB
+    - IR
+  stage: outdoor
+

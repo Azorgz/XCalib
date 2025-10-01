@@ -1,0 +1,16 @@
+local:
+  # Common configuration items (all datasets have these)
+  image_shape: [480, 640] #[360, 480]
+  # Dataset-specific configuration items
+  root_cameras:
+    - /home/godeta/PycharmProjects/XCalib/datasets/lynred/visible
+    - /home/godeta/PycharmProjects/XCalib/datasets/lynred/infrared
+  cameras_name:
+    - RGB
+    - IR
+  cameras_id:
+    - RGB
+    - IR
+  stage: outdoor
+
+

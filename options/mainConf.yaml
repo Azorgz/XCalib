@@ -1,0 +1,27 @@
+name_experiment: test
+
+model:
+  target: 0 # idx of the target camera, must be <= Cameras_number
+  depth: zoe
+  buffer_size: 40  # number of frames used to calibrate
+  device: cuda:0
+  train:
+    batch_size: 5 # number of samples per batch for the second stage
+    shuffle: true
+    frame_sampler: random  # sequential
+    loss: [flow, pose]  # first stage, second stage
+    epochs: 10
+    unfreeze: 8
+    lr: [5e-3, 1e-5]
+
+
+data:
+  name: MyDataset
+  nb_cam: 2
+  normalize_visible: true
+  normalize_infrared: true
+  equalize_visible: true
+  equalize_infrared: true
+
+
+output: /home/godeta/PycharmProjects/XCalib/outputs/

@@ -1,0 +1,60 @@
+import os
+from argparse import Namespace
+
+import yaml
+
+from XCalib2.Mytypes import CamerasCfg
+from XCalib2.backbone import BackboneCfg
+
+
+def get_sampler_opt(opt):
+    sampler = opt['model']['train']['frame_sampler']
+    if sampler == 'random':
+        opt['frame_sampler'] = {
+            'name': 'random',
+            'num_frames': opt['model']['train']['batch_size']}
+    else:
+        with open(os.getcwd() + "/options/frame_sampler/sequential.yaml", "r") as file:
+            sampler_opt = yaml.safe_load(file)
+        opt['frame_sampler'] = sampler_opt
+        opt['frame_sampler']['num_frames'] = opt['model']['train']['batch_size']
+    opt['frame_sampler'] = Namespace(**opt['frame_sampler'])
+    return opt
+
+
+def get_dataset_opt(opt):
+    dataset = opt['data']['name']
+    with open(os.getcwd() + f"/options/dataset/{dataset}.yaml", "r") as file:
+        dataset_opt = yaml.safe_load(file)
+    opt['data'].update(dataset_opt)
+    opt['data'] = CamerasCfg(**opt['data'])
+    return opt
+
+
+def get_depth_options(opt):
+    depth_model = opt['model']['depth']
+    with open(os.getcwd() + f"/options/depth/{depth_model}.yaml", "r") as file:
+        depth_opt = yaml.safe_load(file)
+    opt['model']['depth'] = BackboneCfg(**depth_opt)
+    return opt
+
+
+def get_loss_options(opt):
+    losses = opt['model']['train']['loss']
+
+    with open(os.getcwd() + f"/options/loss/losses.yaml", "r") as file:
+        losses_opt = yaml.safe_load(file)
+
+    for l in losses:
+        loss_opt = losses_opt[l] if l in losses_opt else {}
+        l_cfg = {'name': l}
+        enable_after = eval(loss_opt['enable_after']) if type(loss_opt['enable_after']) is str else float(loss_opt['enable_after'])
+        loss_opt['enable_after'] = (enable_after * opt['model']['train']['epochs']) if (
+                enable_after < 1) else enable_after
+        l_cfg.update(loss_opt)
+        l_cfg = Namespace(**l_cfg)
+        idx = opt['model']['train']['loss'].index(l)
+        opt['model']['train']['loss'][idx] = l_cfg
+    opt['model']['train']['loss'] = tuple(opt['model']['train']['loss'])
+
+    return opt

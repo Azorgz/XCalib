@@ -1,0 +1,6 @@
+name: sequential
+
+# This clips the input video.
+start: 0
+step: 0.1  # seconds (according a default frame rate of 30 fps -- 0 means no subsampling)
+overlap: 1

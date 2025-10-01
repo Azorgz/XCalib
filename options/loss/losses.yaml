@@ -1,0 +1,32 @@
+flow:
+  weight: 0.02
+  disable_after : null
+  enable_after: 0
+
+pose:
+    weight: 1.0
+    disable_after: null
+    enable_after: 2/3
+    losses:
+      NEC:
+        weight: 1.0
+#      SSIM:
+#          weights: 1.0
+#          window_size: 11
+#
+#      L1:
+#          weights: 1.0
+#          reduction: mean  # none, sum, mean
+#
+#      L2:
+#          weights: 1.0
+#          reduction: mean  # none, sum, mean
+#
+#      nMI:
+#          weights: 1.0
+#
+#      nCC:
+#          weights: 1.0
+#          window_size: 9
+
+
