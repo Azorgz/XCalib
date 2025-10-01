@@ -1,12 +1,15 @@
+import os
+
+import numpy as np
 from ImagesCameras.Cameras import LearnableCamera
 from torch import nn
 from torch.nn import ModuleList
 from torch.utils.data import Dataset, default_collate
 from ImagesCameras import Camera
-from ..frame_sampler import FrameSampler
+from frame_sampler import FrameSampler
 
 import torch
-from ..Mytypes import CamerasCfg, Batch
+from misc.Mytypes import CamerasCfg, Batch
 
 
 class CameraBundle(nn.Module):
@@ -49,6 +52,7 @@ class Cameras(Dataset, nn.Module):
         self.indices = self.frame_sampler.sample(len(self.cameras[0].files),
                                                  torch.device("cpu"),
                                                  self.cameras[0].data.fps, 0)
+        self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
         self.path = self.cfg.root_cameras[0]
 
     def load_camera(self, *args):
@@ -70,6 +74,10 @@ class Cameras(Dataset, nn.Module):
 
     def __len__(self):
         return len(self.indices)
+
+    @property
+    def total_frames(self):
+        return len(self.cameras[0].files)
 
     def update_parameters(self):
         for cam in self.cameras:
@@ -120,7 +128,26 @@ class Cameras(Dataset, nn.Module):
                 "modality": modality}
 
     def __getitem__(self, idx: int):
+        if idx >= len(self):
+            idx = idx - len(self)
         indices = self.indices[idx].numpy().tolist()
+        items = [default_collate([self.read_image(cam, index) for index in indices]) for cam in self.cameras]
+        images = [item['image'][:, 0] for item in items]
+        paths = [item['frame_path'] for item in items]
+        cameras = [item['camera'][0] for item in items]
+        modality = [item['modality'][0] for item in items]
+
+        result = {'images': images,
+                  'cameras': cameras,
+                  'frame_paths': paths,
+                  'indices': [indices] * len(self.cameras),
+                  'modality': modality}
+        return Batch(**result)
+
+    def load_images(self, idx: int | list | np.ndarray):
+        if not isinstance(idx, np.ndarray):
+            idx = np.array(idx)
+        indices = [i % self.total_frames for i in idx]
         items = [default_collate([self.read_image(cam, index) for index in indices]) for cam in self.cameras]
         images = [item['image'][:, 0] for item in items]
         paths = [item['frame_path'] for item in items]

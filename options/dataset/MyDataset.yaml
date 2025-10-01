@@ -1,8 +1,8 @@
 root_cameras:
   # VIS root folders
-  - /home/godeta/Images/ICCV/Data_publi/FLIR_night/vis
+  # /here/put/your/visible/folder
   # IR root folders
-  - /home/godeta/Images/ICCV/Data_publi/FLIR_night/ir
+  # /here/put/your/infrared/folder
   # Number of files in each directory must match
 
 cameras_name:

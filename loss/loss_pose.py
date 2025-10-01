@@ -4,13 +4,12 @@ from typing import Literal
 import torch
 from ImagesCameras.Metrics import NEC
 from jaxtyping import Float
-from kornia import create_meshgrid
 from kornia.filters import gaussian_blur2d
 from torch import Tensor
 from torch_similarity.modules import GradientCorrelationLoss2d
 
 from .loss import Loss, LossCfgCommon
-from ..Mytypes import Batch
+from misc.Mytypes import Batch
 
 
 class GC(GradientCorrelationLoss2d):

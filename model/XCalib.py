@@ -1,34 +1,42 @@
+import cv2
 import numpy as np
 import torch
 from ImagesCameras import ImageTensor, CameraSetup
-from datasets import tqdm
 from torch import nn
-from torch.nn.functional import interpolate
-from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.lr_scheduler import ExponentialLR
+from tqdm import tqdm
 
-from XCalib2.Mytypes import Batch
-from XCalib2.backbone import get_backbone
-from XCalib2.frame_sampler import get_frame_sampler
-from XCalib2.loss import get_losses
-from XCalib2.model.cameras import Cameras
-from XCalib2.model.spatial_transformer import depth_warp
+from backbone import get_backbone
+from frame_sampler import get_frame_sampler
+from loss import get_losses
+from misc.Mytypes import Batch
+from misc.utils import check_path
+from model.cameras import Cameras
+from model.spatial_transformer import depth_warp
 
 
 class XCalib(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        #  Base options
         self.experiment = cfg.name_experiment
         self.scheduler = None
         self.optimizer = None
+        self.path = cfg.output + '/' + cfg.name_experiment
+        check_path(self.path)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cfg = cfg.model
         self.output_path = cfg.output + cfg.data.name
         self.train_parameters = self.cfg['train']
+        self.validation_parameters = self.cfg['validation']
+        #  Models
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg['target'])
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
+        # Data
         self.number_cameras = len(self.cameras.cameras)
-        self.images = DataCollector(cfg)
+        self.images = DataCollector(cfg.train_collector)
+        self.validation = DataCollector(cfg.val_collector)
         self.camera_target = self.cfg['target']
         self.define_optimizers()
 
@@ -41,6 +49,9 @@ class XCalib(nn.Module):
     def load_images(self, idx):
         return self.cameras[idx]
 
+    def load_images_by_indices(self, indices):
+        return self.cameras.load_images(indices)
+
     @torch.no_grad()
     def compute_depths(self, batch: Batch):
         with torch.no_grad():
@@ -48,41 +59,34 @@ class XCalib(nn.Module):
         batch.depths = [depths if i == self.camera_target else None for i in range(self.number_cameras)]
         return batch
 
-    @torch.no_grad()
-    def compute_flows(self, batch: Batch):
-        flows = []
-        for i in range(self.number_cameras):
-            if i == self.camera_target:
-                flows.append(None)
-            else:
-                h, w = batch.images[i].shape[-2:]
-                img1, img2 = (interpolate(batch.images[self.camera_target], (h // 2, w // 2)),
-                              interpolate(batch.images[i], (h // 2, w // 2)))
-                flow = self.FlowModel(img1, img2)['flow']
-                flows.append(interpolate(flow, (h, w)) * 2)
-        batch.flows = flows
-        return batch
-
     def optimize_parameters(self):
-        waitbar = tqdm(total=self.images.size, desc='Precomputing images')
+        waitbar = tqdm(total=self.images.size + self.validation.size, desc='Precomputing images')
+        idx_batch = 0
+        if self.validation_parameters['visualize_validation']:
+            indices = np.random.randint(low=0, high=self.cameras.total_frames, size=self.validation_parameters['buffer_size'])
+            batch = self.load_images_by_indices(indices)
+            batch = self.compute_depths(batch)
+            self.validation.add(batch)
+            waitbar.update(self.validation.size)
         while not self.images.isfull:
-            idx_batch = int(np.random.randint(0, len(self.cameras) - 1, 1))
+            idx_batch += 1
             batch = self.load_images(idx_batch)
             batch = self.compute_depths(batch)
-            # batch = self.compute_flows(batch)
             self.buffer_batch(batch)
             waitbar.update(self.train_parameters['batch_size'])
         waitbar.close()
 
         optimization_step = 0
-        waitbar = tqdm(total=len(self.images)//self.train_parameters['batch_size']*self.train_parameters['epochs'],
-                       desc=f'Optimization of the parameters epoch {0}')
+        waitbar = tqdm(total=len(self.images)*self.train_parameters['epochs'],
+                       desc=f'Optimization of the parameters epoch {0}, lr: {self.optimizer.param_groups[0]["lr"]*1000:.3f}e-3')
         self.cameras.initial_freeze()
         screen = None
         for e in range(self.train_parameters['epochs']):
-            waitbar.desc = f'Optimization of the parameters epoch {e}'
-            if e == self.train_parameters['unfreeze']:
+            waitbar.desc = f'Optimization of the parameters epoch {e}, lr: {self.optimizer.param_groups[0]["lr"]*1000:.3f}e-3'
+            if e == int(self.train_parameters['unfreeze']*self.train_parameters['epochs']):
                 self.cameras.unfreeze()
+                self.optimizer.param_groups[0]["lr"] = self.train_parameters['lr_after_unfreeze']
+
             for j in range(len(self.images)//self.train_parameters['batch_size']):
                 optimization_step += 1
                 # self.cameras.update_parameters()
@@ -96,15 +100,24 @@ class XCalib(nn.Module):
                 loss.backward()
                 self.optimizer.step()
                 self.step_scheduler()
-                waitbar.update(1)
-
-            if not e % 2:
-                img = ImageTensor(batch.projections[0] / 2 + batch.projections[1] / 2)
-                if screen is None:
-                    screen = img.show(name=f'Projection at epoch {e}', opencv=True, asyncr=True)
-                else:
-                    screen.update(img, name=f'Projection at epoch {e}')
+                waitbar.update(self.train_parameters['batch_size'])
+                if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
+                    screen = self.validation_step(screen)
+        if self.validation_parameters['visualize_validation']:
+            cv2.waitKey(0)
+            screen.close()
+        waitbar.close()
         self.cameras.freeze()
+
+    def validation_step(self, screen):
+        batch = self.validation.get_batch(0)
+        batch = self.wrap_frame_to_target(batch)
+        img = ImageTensor(batch.projections[0] / 2 + batch.projections[1] / 2)
+        if screen is None:
+            screen = img.show(name=f'Optimization on going...', opencv=True, asyncr=True)
+        else:
+            screen.update(img)
+        return screen
 
     def wrap_all(self):
         old_setup = self.cameras.cfg
@@ -135,21 +148,9 @@ class XCalib(nn.Module):
 
     def define_optimizers(self):
         parameters = self.cameras.named_parameters()
-        if isinstance(self.train_parameters['lr'], list):
-            lr_start, lr_end = eval(self.train_parameters['lr'][0]), eval(self.train_parameters['lr'][1])
-        else:
-            lr_start = eval(self.train_parameters['lr'])
-            lr_end = None
-
-        # optim_params = [parameters, lr= lr_start]
+        lr_start = self.train_parameters['lr']
         self.optimizer = torch.optim.Adam(parameters, lr=lr_start)
-
-        if lr_end is not None:
-            self.scheduler = LambdaLR(self.optimizer,
-                                      lr_lambda=lambda step: lr_end / lr_start + (1 - lr_end / lr_start) / (
-                                                  1.0015 ** step))
-        else:
-            self.scheduler = None
+        self.scheduler = ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
 
     def step_scheduler(self):
         if self.scheduler is not None:
@@ -159,7 +160,8 @@ class XCalib(nn.Module):
         cams = self.cameras.cameras.list
         rig = CameraSetup(*cams)
         rig.update_camera_relative_position(cams[0].id, extrinsics=cams[0].extrinsics)
-        for cam, extrinsic in zip(cams[1:], cams[1:].extrinsics):
+        for cam in cams[1:]:
+            extrinsic = cam.extrinsics
             rig.update_camera_relative_position(cam.id, extrinsics=extrinsic)
         rig.save(self.path, f'{self.experiment}.yaml')
         return rig
@@ -223,14 +225,12 @@ class DataCollector:
     def __init__(self, cfg):
         self.cams = []
         self.modality = []
-        for i in range(cfg.data.nb_cam):
-            buffer_dict = {'images': ImageBuffer(cfg.model['buffer_size'], cfg.model['train']['batch_size'])}
-            if i == cfg.model['target']:
-                buffer_dict['depths'] = ImageBuffer(cfg.model['buffer_size'], cfg.model['train']['batch_size'])
-            # else:
-            #     buffer_dict['flows'] = ImageBuffer(cfg.model['buffer_size'], cfg.model['train']['batch_size'])
-            self.__setattr__(f'{cfg.data.cameras_name[i]}', buffer_dict)
-            self.cams.append(cfg.data.cameras_name[i])
+        for i in range(cfg.nb_cam):
+            buffer_dict = {'images': ImageBuffer(cfg.buffer_size, cfg.batch_size)}
+            if i == cfg.target:
+                buffer_dict['depths'] = ImageBuffer(cfg.buffer_size, cfg.batch_size)
+            self.__setattr__(f'{cfg.cameras_names[i]}', buffer_dict)
+            self.cams.append(cfg.cameras_names[i])
 
     def add(self, batch: Batch):
         for i, (images, indices, cam, mod) in enumerate(zip(batch.images, batch.indices, batch.cameras, batch.modality)):
@@ -274,11 +274,6 @@ class DataCollector:
                 depths.append(depth)
             else:
                 depths.append(None)
-            # if 'flows' in cam_buffer:
-            #     flow, _ = cam_buffer['flows'].get_batch(idx)
-            #     flows.append(flow)
-            # else:
-            #     flows.append(None)
             indices.append(idx_seq)
         return Batch(images=images,
                      indices=indices,

@@ -3,7 +3,8 @@ from argparse import Namespace
 
 import yaml
 
-from XCalib2.options import get_sampler_opt, get_dataset_opt, get_depth_options, get_loss_options
+from options import get_sampler_opt, get_dataset_opt, get_depth_options, get_loss_options, get_train_opt, \
+    get_validation_opt
 
 
 def get_options():
@@ -21,5 +22,9 @@ def get_options():
 
     ## Loss OPTIONS
     options = get_loss_options(options)
+
+    ## Data OPTIONS
+    options = get_train_opt(options)
+    options = get_validation_opt(options)
 
     return Namespace(**options)

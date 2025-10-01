@@ -5,7 +5,8 @@ import numpy as np
 import torch
 from jaxtyping import Float
 from torch import Tensor, nn
-from XCalib2.Mytypes import Batch
+
+from misc.Mytypes import Batch
 
 
 @dataclass

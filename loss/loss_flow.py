@@ -6,8 +6,8 @@ from torch import Tensor
 from torch.nn.functional import interpolate
 
 from .loss import Loss, LossCfgCommon
-from ..Mytypes import Batch
-from ..flow.CrossModalFlow.get_model import get_model_raft
+from misc.Mytypes import Batch
+from flow.CrossModalFlow.get_model import get_model_raft
 
 
 @dataclass

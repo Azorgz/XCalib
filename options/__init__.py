@@ -3,8 +3,30 @@ from argparse import Namespace
 
 import yaml
 
-from XCalib2.Mytypes import CamerasCfg
-from XCalib2.backbone import BackboneCfg
+from backbone import BackboneCfg
+from misc.Mytypes import CamerasCfg
+
+
+def get_train_opt(opt):
+    cfg_train_data = {'buffer_size': opt['model']['buffer_size'],
+                      'nb_cam': opt['data'].nb_cam,
+                      'batch_size': opt['model']['train']['batch_size'],
+                      'target': opt['model']['target'],
+                      'cameras_names': opt['data'].cameras_name}
+    opt['train_collector'] = Namespace(**cfg_train_data)
+    opt['model']['train']['lr'] = float(opt['model']['train']['lr'])
+    opt['model']['train']['lr_after_unfreeze'] = float(opt['model']['train']['lr_after_unfreeze'])
+    return opt
+
+
+def get_validation_opt(opt):
+    cfg_val_data = {'buffer_size': opt['model']['validation']['buffer_size'],
+                    'nb_cam': opt['data'].nb_cam,
+                    'batch_size': opt['model']['validation']['buffer_size'],
+                    'target': opt['model']['target'],
+                    'cameras_names': opt['data'].cameras_name}
+    opt['val_collector'] = Namespace(**cfg_val_data)
+    return opt
 
 
 def get_sampler_opt(opt):

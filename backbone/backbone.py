@@ -6,7 +6,8 @@ import numpy as np
 import torch
 from jaxtyping import Float
 from torch import Tensor, nn
-from utils.misc import get_gpu_memory
+
+from misc.utils import get_gpu_memory
 
 T = TypeVar("T")
 

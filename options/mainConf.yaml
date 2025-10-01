@@ -1,4 +1,4 @@
-name_experiment: test
+name_experiment: FLIR
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number
@@ -6,17 +6,23 @@ model:
   buffer_size: 40  # number of frames used to calibrate
   device: cuda:0
   train:
-    batch_size: 5 # number of samples per batch for the second stage
+    batch_size: 8 # number of samples per batch for the second stage
     shuffle: true
     frame_sampler: random  # sequential
     loss: [flow, pose]  # first stage, second stage
     epochs: 10
-    unfreeze: 8
-    lr: [5e-3, 1e-5]
+    unfreeze: 0.8
+    lr: 5e-3
+    lr_after_unfreeze: 1e-4
+    lr_decay: 0.98
 
+  validation:
+    visualize_validation: True
+    step_visualize: 1
+    buffer_size: 4
 
 data:
-  name: MyDataset
+  name: FLIR  # LYNRED, FLIR, RoadScene, MyDataset
   nb_cam: 2
   normalize_visible: true
   normalize_infrared: true
@@ -24,4 +30,4 @@ data:
   equalize_infrared: true
 
 
-output: /home/godeta/PycharmProjects/XCalib/outputs/
+output: /home/godeta/PycharmProjects/XCalib2/outputs/

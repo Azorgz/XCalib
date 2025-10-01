@@ -116,22 +116,3 @@ def infer_model(model_name, pretrained_resource, dataset=None, **kwargs):
     print(f"Evaluating {model_name} on {dataset}...")
     metrics = main(config)
     return metrics
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model", default='zoedepth', type=str,
-                        required=False, help="Name of the model to evaluate")
-    parser.add_argument("-p", "--pretrained_resource", type=str,
-                        required=False,
-                        default="local::./Networks/Depth_anything/metric_depth/checkpoints/depth_anything_metric_depth_outdoor.pt",
-                        help="Pretrained resource to use for fetching weights. If not set, default resource from model config is used,  Refer models.model_io.load_state_from_resource for more details.")
-    parser.add_argument("-d", "--dataset", type=str, required=False,
-                        default='/home/godeta/PycharmProjects/Datasets/Lynred/Day/master',
-                        help="Dataset to evaluate on")
-
-    args, unknown_args = parser.parse_known_args()
-    overwrite_kwargs = parse_unknown(unknown_args)
-    datasets = [args.dataset + '/visible', args.dataset + '/infrared_corrected']
-    infer_model(args.model, pretrained_resource=args.pretrained_resource,
-                dataset=datasets, **overwrite_kwargs)

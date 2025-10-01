@@ -9,4 +9,4 @@ dependencies:
   - pip:
       - tqdm
       - jaxtyping
-      - ImagesCameras @ https://github.com/Azorgz/ImagesCameras.git
+      - git+https://github.com/Azorgz/ImagesCameras.git

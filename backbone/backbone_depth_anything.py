@@ -8,10 +8,10 @@ from einops import rearrange
 from torch import nn, Tensor
 from torch.nn.functional import interpolate
 
-from ..backbone.Depth_anything.metric_depth.zoedepth.models.builder import build_model
-from ..backbone.Depth_anything.metric_depth.zoedepth.utils.config import get_config
-from ..backbone import Backbone
-from utils.misc import configure_parser
+from backbone.Depth_anything.metric_depth.zoedepth.models.builder import build_model
+from backbone.Depth_anything.metric_depth.zoedepth.utils.config import get_config
+from backbone import Backbone
+from misc.utils import configure_parser
 
 
 @dataclass

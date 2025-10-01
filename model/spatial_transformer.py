@@ -8,7 +8,7 @@ from kornia.geometry import transform_points, normalize_pixel_coordinates, compo
     inverse_transformation, depth_to_3d_v2, convert_points_from_homogeneous
 from torch import Tensor
 
-from XCalib2.Mytypes import Batch
+from misc.Mytypes import Batch
 
 
 def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0):
@@ -28,7 +28,7 @@ def depth_to_3d(depths: Float[Tensor, "*batch h w"],
     b = np.prod(batch)
     depths = depths.reshape(b, h, w)
     intrinsics = intrinsics.repeat(b, 1, 1)
-    surfaces = torch.cat([depth_to_3d_v2(depth, intrinsic) for depth, intrinsic in zip(depths, intrinsics)])
+    surfaces = depth_to_3d_v2(depths, intrinsics)
     return surfaces.reshape(*batch, h, w, 3)
 
 
@@ -73,10 +73,10 @@ def projection_frame_to_frame(batch: Batch,
     image_shape2 = images.shape[-2:]
 
     # convert depth to 3d points
-    points_3d_dst: Tensor = depth_to_3d(depths, cam_dst)  # Bx3xHxW
+    points_3d_dst: Tensor = depth_to_3d(depths, cam_dst)[:, 0]  # Bx3xHxW
 
     # apply transformation to the 3d points
-    points_3d_dst_trans = transform_points(relative_poses.to(torch.float32), points_3d_dst)  # BxHxWx3
+    points_3d_dst_trans = transform_points(relative_poses, points_3d_dst)  # BxHxWx3
 
     points_2d_dst_trans: Tensor = torch.stack(
         [project_points(points_3d_dst_trans[i], cam_src) for i in range(b)])  # BxHxWx2

@@ -1,5 +1,5 @@
 flow:
-  weight: 0.02
+  weight: 0.025
   disable_after : null
   enable_after: 0
 
