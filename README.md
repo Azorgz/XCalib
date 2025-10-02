@@ -118,6 +118,12 @@ chmod +x download_weights.sh
    ```
 
 3. Create a YAML configuration file (e.g., 'options/dataset/MyDataset.yaml') specifying the paths
+``` 
+in --> /option/dataset/NAME.yaml
+    root_cameras:
+        - path/to/visible/images
+        - path/to/thermal/images
+```
 
 4. Change the options in the yaml config file (in `options/mainConf.yaml`) to point toward the desire output folders. 
 The Results will be stored in 'your/path/to/results/{experiment_name}'. The given parameters are the default ones we used in our experiments.
@@ -142,7 +148,7 @@ The Results will be stored in 'your/path/to/results/{experiment_name}'. The give
     Or you can pick the exact images to visualize by specifying their indices: list -> buffer_idx. (overrid buffer_size)
     
   data:
-    Name of the YAML file you created for your dataset in the options/dataset folder: str -> name.
+    NAME of the YAML file you created for your dataset in the options/dataset folder: str -> name.
    
   output: Path/to/your/output/folder
 ```
