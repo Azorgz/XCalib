@@ -1,9 +1,0 @@
-root_cameras:
-  - examples/RoadScene/vis
-  - examples/RoadScene/ir
-
-cameras_name:
-  - RGB
-  - IR
-
-stage: outdoor

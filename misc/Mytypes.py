@@ -144,6 +144,7 @@ class CamerasCfg:
     normalize_infrared: bool = False
     equalize_visible: bool = False
     equalize_infrared: bool = False
+    from_file: str | Path | None = None
 
 
 @dataclass

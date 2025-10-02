@@ -7,19 +7,22 @@ from options.options import get_options
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = 'expandable_segments:True'
 
 
-def fit_cams() -> XCalib:
-    cfg = get_options()
+def fit_cams(cfg) -> XCalib:
     model = XCalib(cfg)
-    model.to(cfg.model['device'])
+    model = model.to(cfg.model['device'])
     model.optimize_parameters()
     return model
-
-
-# def train(cfg, cfg_dict, datamodule: DataModule, device: torch.device, idx=None) -> None:
 
 
 if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     warnings.filterwarnings('ignore')
-    xCalib = fit_cams()
-    xCalib.save_cameras_rig()
+    cfg = get_options()
+    if cfg.run_parameters['mode'] in ['all_in_one', 'calibration_only']:
+        xcalib = fit_cams(cfg)
+        if xcalib.cfg.run_parameters['save_calib']:
+            xcalib.save_cameras_rig()
+    else:
+        xcalib = XCalib(cfg).to(cfg.model['device'])
+    if cfg.run_parameters['mode'] in ['all_in_one', 'registration_only']:
+        xcalib.wrap_all()

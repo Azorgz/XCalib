@@ -5,6 +5,7 @@ import os
 import stat
 import subprocess as sp
 
+import torch
 import yaml
 
 
@@ -70,6 +71,22 @@ def time2str(t, optimize_unit=True):
         else:
             str_time = str(round(t, 3)) + unit_dict[unit]
         return str_time
+
+
+def select_device(gpu_id=None, verbose=False):
+    if gpu_id is None or gpu_id == '-1' or gpu_id == '-1,-1':
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    else:
+        device = f'cuda:{gpu_id}' if torch.cuda.is_available() else 'cpu'
+        assert torch.cuda.is_available(), f"CUDA is not available. Please check your CUDA installation or set gpu_id to -1"
+        if verbose:
+            n_gpus = torch.cuda.device_count()
+            list_free_mem = get_gpu_memory()
+            if n_gpus > 1:
+                print(f"Device {device} selected, {n_gpus} GPUs are available with memory (in Gb) {list_free_mem}")
+            else:
+                print(f"Device {device} selected, {list_free_mem[0]:.2f}Gb free")
+    return device
 
 
 def check_path(path):

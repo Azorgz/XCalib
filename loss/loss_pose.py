@@ -2,20 +2,22 @@ from dataclasses import dataclass
 from typing import Literal
 
 import torch
-from ImagesCameras.Metrics import NEC
+from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE
 from jaxtyping import Float
-from kornia.filters import gaussian_blur2d
 from torch import Tensor
 from torch_similarity.modules import GradientCorrelationLoss2d
 
-from .loss import Loss, LossCfgCommon
 from misc.Mytypes import Batch
+from .loss import Loss, LossCfgCommon
 
 
 class GC(GradientCorrelationLoss2d):
+    higher_is_better = True
 
-    def __init__(self):
+    def __init__(self, device):
         super().__init__(return_map=True)
+        self.device = device
+        self.to(device)
 
     def forward(self, x, y, mask=None, weights=None, return_coeff=False):
         _, gc_map = super().forward(x, y)
@@ -39,7 +41,7 @@ class LossPoseCfg(LossCfgCommon):
     losses: dict
 
 
-losses_dict = {'NEC': NEC}
+losses_dict = {'NEC': NEC, 'GC': GC, 'SSIM': SSIM, 'RMSE': RMSE, }
 
 
 class LossPose(Loss[LossPoseCfg]):
@@ -68,7 +70,11 @@ class LossPose(Loss[LossPoseCfg]):
         for weight, loss in zip(self.weights, self.losses):
             if weight > 0:
                 metric = loss(device=device)
-                mask = gaussian_blur2d(((reg * target) > 0) * 1., 3, (1.6, 1.6)) == 1
-                loss = metric(reg, target, mask=mask)
-                loss_tot += (1 - loss if metric.higher_is_better else loss) * weight
+                if isinstance(metric, NEC):
+                    loss, coeff = metric(reg, target, mask=reg * target > 0, return_coeff=True)
+                    coeff = coeff / coeff.mean()
+                else:
+                    loss = metric(reg, target, mask=reg * target > 0)
+                    coeff = 1.
+                loss_tot += (1 - loss if metric.higher_is_better else loss) * weight * coeff
         return loss_tot

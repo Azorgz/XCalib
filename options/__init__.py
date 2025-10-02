@@ -20,11 +20,15 @@ def get_train_opt(opt):
 
 
 def get_validation_opt(opt):
+    if opt['model']['validation']['buffer_idx'] is not None:
+        assert opt['model']['validation']['buffer_idx']
+        opt['model']['validation']['buffer_size'] = len(opt['model']['validation']['buffer_idx'])
     cfg_val_data = {'buffer_size': opt['model']['validation']['buffer_size'],
                     'nb_cam': opt['data'].nb_cam,
                     'batch_size': opt['model']['validation']['buffer_size'],
                     'target': opt['model']['target'],
-                    'cameras_names': opt['data'].cameras_name}
+                    'cameras_names': opt['data'].cameras_name,
+                    'buffer_idx': opt['model']['validation']['buffer_idx']}
     opt['val_collector'] = Namespace(**cfg_val_data)
     return opt
 
@@ -49,6 +53,7 @@ def get_dataset_opt(opt):
     with open(os.getcwd() + f"/options/dataset/{dataset}.yaml", "r") as file:
         dataset_opt = yaml.safe_load(file)
     opt['data'].update(dataset_opt)
+    opt['data']['from_file'] = opt['run_parameters']['path_to_calib'] if opt['run_parameters']['mode'] == 'registration_only' else None
     opt['data'] = CamerasCfg(**opt['data'])
     return opt
 
@@ -71,8 +76,18 @@ def get_loss_options(opt):
         loss_opt = losses_opt[l] if l in losses_opt else {}
         l_cfg = {'name': l}
         enable_after = eval(loss_opt['enable_after']) if type(loss_opt['enable_after']) is str else float(loss_opt['enable_after'])
-        loss_opt['enable_after'] = (enable_after * opt['model']['train']['epochs']) if (
+        loss_opt['enable_after'] = int(enable_after * opt['model']['train']['epochs']) if (
                 enable_after < 1) else enable_after
+        if loss_opt['disable_after'] is not None:
+            disable_after = eval(loss_opt['disable_after']) if (type(loss_opt['disable_after'])
+                                                                is str) else float(loss_opt['enable_after'])
+        else:
+            disable_after = None
+        if disable_after is not None:
+            loss_opt['disable_after'] = int(disable_after * opt['model']['train']['epochs']) if (
+                    disable_after < 1) else disable_after
+        else:
+            loss_opt['disable_after'] = None
         l_cfg.update(loss_opt)
         l_cfg = Namespace(**l_cfg)
         idx = opt['model']['train']['loss'].index(l)

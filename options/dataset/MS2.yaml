@@ -1,0 +1,9 @@
+root_cameras:
+  - examples/MS2/vis
+  - examples/MS2/ir
+
+cameras_name:
+  - RGB
+  - IR
+
+stage: outdoor

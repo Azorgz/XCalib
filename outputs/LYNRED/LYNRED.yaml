@@ -1,0 +1,135 @@
+cameras:
+  RGB:
+    name: RGB
+    id: RGB
+    f:
+    - 10.0
+    - 10.0
+    intrinsics:
+    - - 1601.392697625387
+      - 0.0
+      - 638.7597930352725
+      - 0.0
+    - - 0.0
+      - 1594.913673773973
+      - 479.30469687677186
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    extrinsics:
+    - - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    is_ref: false
+    is_positioned: true
+    path: examples/LYNRED/vis
+    pixelSize:
+    - 6.25e-06
+    - 6.25e-06
+    size:
+    - 0.006
+    - 0.008
+    resolution:
+    - 960
+    - 1280
+    modality: Visible
+    sensor_name: NoName
+  IR:
+    name: IR
+    id: IR
+    f:
+    - 10.0
+    - 10.0
+    intrinsics:
+    - - 786.9576049816621
+      - 0.0
+      - 320.6077372077726
+      - 0.0
+    - - 0.0
+      - 782.801364120415
+      - 240.35549963314926
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    extrinsics:
+    - - 1.0
+      - 0.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 1.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.0
+      - 1.0
+    is_ref: false
+    is_positioned: true
+    path: examples/LYNRED/ir
+    pixelSize:
+    - 1.25e-05
+    - 1.25e-05
+    size:
+    - 0.006
+    - 0.008
+    resolution:
+    - 480
+    - 640
+    modality: Any
+    sensor_name: NoName
+camera_ref: RGB
+base2Ref:
+- - - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+stereo_pair:
+  left: []
+  right: []
+  name: []
+depth_pair:
+  ref: []
+  target: []
+  name: []

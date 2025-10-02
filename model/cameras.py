@@ -1,11 +1,12 @@
 import os
 
 import numpy as np
+import yaml
 from ImagesCameras.Cameras import LearnableCamera
 from torch import nn
 from torch.nn import ModuleList
 from torch.utils.data import Dataset, default_collate
-from ImagesCameras import Camera
+from ImagesCameras import Camera, CameraSetup
 from frame_sampler import FrameSampler
 
 import torch
@@ -44,7 +45,9 @@ class Cameras(Dataset, nn.Module):
         self.frame_sampler = frame_sampler
         self.modality = []
         self.stage = cfg.stage
-        if cameras is None:
+        if cfg.from_file is not None:
+            self.from_file(cfg.from_file)
+        elif cameras is None:
             self.load_camera(*args)
         else:
             self.cameras = cameras['cameras']
@@ -54,6 +57,13 @@ class Cameras(Dataset, nn.Module):
                                                  self.cameras[0].data.fps, 0)
         self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
         self.path = self.cfg.root_cameras[0]
+
+    def from_file(self, path: str | os.PathLike):
+        setup = CameraSetup(from_file=path)
+        from_setup = [(cam.path, cam.intrinsics[0], cam.extrinsics[0, :, :] if i != 0 else setup.base2Ref[0, 0, :, :], cam.id, cam.name) for i, cam in enumerate(setup.cameras.values())]
+        cams = [LearnableCamera(v[0], intrinsics=v[1], extrinsics=v[2], id=v[3], name=v[4]) for v in from_setup]
+        self.cameras = CameraBundle(cams)
+        self.modality = [cam.modality for cam in cams]
 
     def load_camera(self, *args):
         assert len(self.cfg.cameras_name) == len(
