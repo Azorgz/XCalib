@@ -4,7 +4,7 @@ from typing import Literal
 
 import torch
 
-from ..third_party.ImagesCameras import Camera, ImageTensor
+from ImagesCameras import Camera, ImageTensor
 from . import Cameras, CamerasCfg
 from .dataset_cameras import CameraBundle
 from ..frame_sampler import FrameSampler

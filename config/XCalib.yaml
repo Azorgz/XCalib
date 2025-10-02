@@ -1,5 +1,5 @@
 defaults:
-  - dataset: MyDataset
+  - dataset: MS2
   - frame_sampler: random
   - depth: zoe
   - model/relative_pose: regressed
@@ -14,7 +14,7 @@ trainer:
   max_steps: 400
 
 model:
-  image_shape: [512, 640] #[480, 640][240, 320]
+  image_shape: [480, 640] #[480, 640][240, 320]
 
 wandb:
   project: XCalib
@@ -27,7 +27,7 @@ wandb:
 
 datamodule:
   cache_path: _cache
-  nb_cam: 2
+  nb_cam: 3
   shuffle: false
   epochs: 25
   overlap: 0

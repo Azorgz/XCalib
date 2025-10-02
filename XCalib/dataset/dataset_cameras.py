@@ -5,7 +5,7 @@ from typing import Literal
 import torch
 from torch.utils.data import Dataset, default_collate
 
-from ..third_party.ImagesCameras import Camera, ImageTensor
+from ImagesCameras import Camera, ImageTensor
 from ..frame_sampler import FrameSampler
 
 

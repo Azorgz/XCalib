@@ -7,15 +7,15 @@ MS2:
     - /media/godeta/T5 EVO/Datasets/MS2/sync_data
   cameras_name:
     - rgb_left
-    - thr_right
     - nir_left
     - thr_left
+    - thr_right
 
   cameras_id:
     - RGB
-    - IR2
     - NIR
     - IR
+    - IR2
 
   folder: clip1  # in [clip1, clip2]
   stage: outdoor

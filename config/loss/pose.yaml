@@ -1,6 +1,6 @@
 pose:
   weight: 1.0
-  enable_after: 200
+  enable_after: 100
   disable_after: null
   bidirectional: false
   cross_loss: 50  # 0 means no cross loss. x>0 means after global step x

@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from ImagesCameras import Camera, CameraSetup
+
 from ..model.projection import focal_lengths_to_scaled_intrinsics
-from ..third_party.ImagesCameras import Camera, CameraSetup
 from XCalib.dataset.dataset_cameras import CameraBundle
 from XCalib.model.model import ModelExports
 

@@ -85,8 +85,8 @@ def train(cfg, cfg_dict, datamodule: DataModule, device: torch.device, idx=None)
 
     if cfg.wandb.mode != "disabled":
         artifact = wandb.Artifact(f"rig_calibrated_{wandb.run.id}", type="Camera Rig")
-        artifact.add_file(f'{cam_path}/rig_calibrated{f"_{idx}" if idx is not None else ""}.yaml',
-                          name=f'rig_calibrated.yaml')
+        artifact.add_file(f'{cam_path}/{datamodule.dataset.name}{f"_{idx}" if idx is not None else ""}.yaml',
+                          name=f'{datamodule.dataset.name}{f"_{idx}" if idx is not None else ""}.yaml')
         wandb.log_artifact(artifact)
         artifact.wait()
 

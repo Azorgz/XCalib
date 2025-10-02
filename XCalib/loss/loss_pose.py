@@ -9,8 +9,8 @@ from kornia import create_meshgrid
 from torch import Tensor
 from torch_similarity.modules import GradientCorrelationLoss2d
 
-from ..third_party.ImagesCameras import ImageTensor
-from ..third_party.ImagesCameras.Metrics import NEC
+from ImagesCameras import ImageTensor
+from ImagesCameras.Metrics import NEC
 from .loss import Loss, LossCfgCommon
 from ..dataset.types import Batch
 from ..model.model import ModelOutput

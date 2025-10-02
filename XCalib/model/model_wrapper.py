@@ -9,7 +9,7 @@ from lightning.pytorch.utilities.types import OptimizerLRScheduler
 from lightning.pytorch.loggers.wandb import WandbLogger
 from torch import optim
 
-from ..third_party.ImagesCameras import CameraSetup
+from ImagesCameras import CameraSetup
 from .model import Model, ModelExports
 from ..config.common import CommonCfg
 from ..dataset.dataset_cameras import CameraBundle

@@ -6,7 +6,7 @@ from click import Path
 from jaxtyping import Float, Int64
 from torch import Tensor
 
-from ..third_party.ImagesCameras.Cameras import Cameras
+from ImagesCameras import Cameras
 from ..misc.manipulable import Manipulable
 
 

@@ -8,7 +8,7 @@ from kornia.geometry import depth_to_3d_v2, transform_points, normalize_pixel_co
     convert_points_from_homogeneous
 from kornia.geometry import project_points as pp
 from torch import Tensor, deg2rad
-from ..third_party.ImagesCameras import ImageTensor
+from ImagesCameras import ImageTensor
 from ..dataset.types import Batch
 
 

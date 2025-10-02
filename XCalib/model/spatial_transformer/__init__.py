@@ -1,4 +1,4 @@
-from .spatial_transformer import SpatialTransformerCfg, SpatialTransformer
+from XCalib2.model.spatial_transformer import SpatialTransformerCfg, SpatialTransformer
 
 SPATIAL_TRANSFORMER = {"spatialtransformer": SpatialTransformer}
 

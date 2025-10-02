@@ -5,7 +5,7 @@ import torch
 from jaxtyping import Float
 from torch import Tensor
 
-from ..third_party.ImagesCameras import ImageTensor
+from ImagesCameras import ImageTensor
 from .layout import add_border, hcat, vcat
 from .visualizer import Visualizer
 from ..dataset.types import Batch

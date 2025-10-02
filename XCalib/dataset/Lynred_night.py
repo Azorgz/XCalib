@@ -3,7 +3,7 @@ from typing import Literal
 
 import torch
 
-from ..third_party.ImagesCameras import Camera
+from ImagesCameras import Camera
 from . import Cameras, CamerasCfg
 from ..frame_sampler import FrameSampler
 

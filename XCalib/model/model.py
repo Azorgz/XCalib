@@ -7,7 +7,7 @@ from torch import Tensor, nn
 from .relative_pose import get_relative_pose, RelativePoseCfg
 from .relative_pose.initial_pose import InitialPose, InitialPoseCfg
 from .relative_pose.relative_pose import RelativePoseOutput
-from .spatial_transformer.spatial_transformer import SpatialTransformerCfg, SpatialTransformerOutput, SpatialTransformer
+from XCalib2.model.spatial_transformer import SpatialTransformerCfg, SpatialTransformerOutput, SpatialTransformer
 from ..dataset.dataset_cameras import CameraBundle
 from ..dataset.types import Batch
 
