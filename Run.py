@@ -7,9 +7,9 @@ from options.options import get_options
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = 'expandable_segments:True'
 
 
-def fit_cams(cfg) -> XCalib:
-    model = XCalib(cfg)
-    model = model.to(cfg.model['device'])
+def fit_cams(config) -> XCalib:
+    model = XCalib(config)
+    model = model.to(config.model['device'])
     model.optimize_parameters()
     return model
 

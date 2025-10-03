@@ -1,0 +1,12 @@
+root_cameras:
+  - examples/LYNRED_DAY/vis
+  - examples/LYNRED_DAY/ir
+
+cameras_name:
+  - RGB
+  - IR
+
+stage: outdoor
+
+
+

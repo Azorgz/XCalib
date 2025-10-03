@@ -46,7 +46,7 @@ COMMON_CONFIG = {
 }
 
 DATASETS_CONFIG = {
-    "LYNRED": {
+    "LYNRED_DAY": {
         "dataset": "lynred",
         "min_depth": 1,
         "max_depth": 200,

@@ -1,4 +1,4 @@
-name_experiment: FLIR
+name_experiment: LYNRED_DAY
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number
@@ -11,7 +11,7 @@ model:
     frame_sampler: random  # sequential
     loss: [flow, pose]  # flow for coarse prepositioning, pose for final calibration
     epochs: 15
-    unfreeze: 0.75  # epoch to unfreeze the whole parameters
+    unfreeze: 0.85  # epoch to unfreeze the whole parameters
     lr: 5e-3
     lr_after_unfreeze: 1e-3
     lr_decay: 0.98
@@ -19,20 +19,20 @@ model:
   validation:
     visualize_validation: True
     step_visualize: 1
-    buffer_size: 4
+    buffer_size: 8
     buffer_idx: [0, 29]  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: FLIR  # LYNRED, FLIR, MS2, MyDataset
+  name: LYNRED_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR, MS2, MyDataset
   nb_cam: 2
-  normalize_visible: False
-  normalize_infrared: False
+  normalize_visible: True
+  normalize_infrared: True
   equalize_visible: False
-  equalize_infrared: False
+  equalize_infrared: True
 
 run_parameters:
-  mode: registration_only  # all_in_one, calibration_only, registration_only
+  mode: calibration_only  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
-  path_to_calib: outputs/FLIR/FLIR.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
+  path_to_calib: null # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
   enhance_resut_quality: True  # Module borrowed from @PGMR
 output: outputs/

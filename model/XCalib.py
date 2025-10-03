@@ -34,7 +34,7 @@ class XCalib(nn.Module):
         self.train_parameters = self.cfg.model['train']
         self.validation_parameters = self.cfg.model['validation']
         #  Models
-        if cfg.run_parameters['mode'] == 'calibration_only':
+        if cfg.run_parameters['mode'] == 'registration_only':
             assert isfile(cfg.run_parameters['path_to_calib']), \
                 "Please provide a valid path to a calibration file to run registration only"
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
