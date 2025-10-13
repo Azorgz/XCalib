@@ -10,7 +10,6 @@ from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 
 from backbone import get_backbone
-from enhancer import get_enhancer
 from frame_sampler import get_frame_sampler
 from loss import get_losses
 from misc.Mytypes import Batch
@@ -25,7 +24,9 @@ class XCalib(nn.Module):
         #  Base options
         self.experiment = cfg.name_experiment
         self.scheduler = None
+        self.depth_scheduler = None
         self.optimizer = None
+        self.depth_optimizer = None
         self.path = cfg.output + '/' + cfg.name_experiment
         check_path(self.path)
         self.device = select_device(cfg.model['device'])
@@ -40,10 +41,6 @@ class XCalib(nn.Module):
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
-        if cfg.run_parameters['enhance_resut_quality']:
-            self.enhancer = get_enhancer()
-        else:
-            self.enhancer = None
         # Data
         self.number_cameras = len(self.cameras.cameras)
         self.images = DataCollector(cfg.train_collector)
@@ -70,26 +67,29 @@ class XCalib(nn.Module):
         batch.depths = [depths if i == self.camera_target else None for i in range(self.number_cameras)]
         return batch
 
-    def optimize_parameters(self):
+    def buffer_all(self):
         waitbar = tqdm(total=self.images.size + self.validation.size, desc='Buffering Images and Depths')
         idx_batch = 0
-        if self.validation_parameters['visualize_validation']:
+        if self.validation_parameters['visualize_validation'] and not self.validation.isfull:
             if self.validation_parameters['buffer_idx'] is not None:
                 indices = self.validation_parameters['buffer_idx']
             else:
-                indices = np.random.randint(low=0, high=self.cameras.total_frames, size=self.validation_parameters['buffer_size'])
+                indices = np.random.randint(low=0, high=self.cameras.total_frames,
+                                            size=self.validation_parameters['buffer_size'])
             batch = self.load_images_by_indices(indices)
             batch = self.compute_depths(batch)
             self.validation.add(batch)
             waitbar.update(self.validation.size)
         while not self.images.isfull:
-            idx_batch += 1
             batch = self.load_images(idx_batch)
             batch = self.compute_depths(batch)
             self.buffer_batch(batch)
+            idx_batch += 1
             waitbar.update(self.train_parameters['batch_size'])
         waitbar.close()
 
+    def optimize_parameters(self):
+        self.buffer_all()
         optimization_step = 0
         waitbar = tqdm(total=len(self.images)*self.train_parameters['epochs'],
                        desc=f'Optimization of the parameters epoch {0}, lr: {self.optimizer.param_groups[0]["lr"]*1000:.3f}e-3, {self.LossModel}')
@@ -109,23 +109,23 @@ class XCalib(nn.Module):
                 # Wrap images
                 batch = self.wrap_frame_to_target(batch)
                 # Computes losses
-                loss = self.LossModel(batch, e)
+                loss = self.LossModel(batch, e, self.cameras)
                 loss.backward()
                 self.optimizer.step()
                 self.step_scheduler()
                 waitbar.update(self.train_parameters['batch_size'])
                 if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
                     screen, valid_image = self.validation_step(screen)
+        waitbar.close()
+        self.cameras.freeze()
         if self.validation_parameters['visualize_validation']:
             screen.close()
             valid_image.show(name=f'Final result', opencv=True)
-        waitbar.close()
-        self.cameras.freeze()
 
-    def validation_step(self, screen):
-        batch = self.validation.get_batch(0)
-        batch = self.wrap_frame_to_target(batch)
-        img = ImageTensor(batch.projections[0] / 2 + batch.projections[1] / 2)
+    def validation_step(self, screen, refine_depth=False):
+        batch_val = self.validation.get_batch(0)
+        batch_val = self.wrap_frame_to_target(batch_val, refine_depth=refine_depth)
+        img = ImageTensor(batch_val.projections[0] / 2) + ImageTensor(batch_val.projections[1] / 2)
         if screen is None:
             screen = img.show(name=f'Optimization on going...', opencv=True, asyncr=True)
         else:
@@ -155,8 +155,10 @@ class XCalib(nn.Module):
             waitbar.update(len(batch.indices))
         self.cameras.cfg = old_setup
 
-    def wrap_frame_to_target(self, batch: Batch):
+    def wrap_frame_to_target(self, batch: Batch, refine_depth=False) -> Batch:
         proj = []
+        if refine_depth:
+            batch = self.depth_refiner(batch)
         for i, image in enumerate(batch.images):
             if i == self.camera_target:
                 proj.append(image)
@@ -172,10 +174,17 @@ class XCalib(nn.Module):
         lr_start = self.train_parameters['lr']
         self.optimizer = torch.optim.Adam(parameters, lr=lr_start)
         self.scheduler = ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
+        if self.train_parameters['refine_depth']:
+            self.depth_optimizer = torch.optim.Adam(self.depth_refiner.parameters(), lr=5e-3)#self.train_parameters['lr_after_unfreeze'])
+            self.depth_scheduler = ExponentialLR(self.depth_optimizer, gamma=1 - (1 - self.train_parameters['lr_decay'])/2)
 
     def step_scheduler(self):
         if self.scheduler is not None:
             self.scheduler.step()
+
+    def step_depth_scheduler(self):
+        if self.depth_scheduler is not None:
+            self.depth_scheduler.step()
 
     def save_cameras_rig(self):
         cams = self.cameras.cameras.list

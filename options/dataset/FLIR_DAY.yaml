@@ -1,6 +1,6 @@
 root_cameras:
-  - examples/FLIR/vis
-  - examples/FLIR/ir
+  - examples/FLIR_DAY/vis
+  - examples/FLIR_DAY/ir
 
 cameras_name:
   - RGB

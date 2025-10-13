@@ -61,12 +61,13 @@ class Loss(nn.Module, ABC, Generic[T]):
             self,
             batch: Batch,
             epoch: int,
+            cameras,
     ) -> Float[Tensor, ""]:
         # Before the loss is enabled, don't compute the loss.
         if (epoch in self.stepper) or (epoch >= self.stepper[-1] and self.to_the_end):
             # Multiply the computed loss value by the weight.
             loss = self.compute_unweighted_loss(
-                batch, epoch)
+                batch, epoch, cameras)
             return self.cfg.weight * loss
         else:
             return torch.tensor(0, dtype=torch.float32, device=batch.images[0][0].device)
@@ -76,5 +77,6 @@ class Loss(nn.Module, ABC, Generic[T]):
             self,
             batch: Batch,
             global_step: int,
+            cameras,
     ) -> Float[Tensor, ""]:
         pass

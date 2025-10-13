@@ -62,7 +62,7 @@ def get_depth_options(opt):
     depth_model = opt['model']['depth']
     with open(os.getcwd() + f"/options/depth/{depth_model}.yaml", "r") as file:
         depth_opt = yaml.safe_load(file)
-    opt['model']['depth'] = BackboneCfg(**depth_opt)
+    opt['model']['depth'] = BackboneCfg[depth_model](**depth_opt)
     return opt
 
 
@@ -84,7 +84,7 @@ def get_loss_options(opt):
         else:
             disable_after = None
         if disable_after is not None:
-            loss_opt['disable_after'] = int(disable_after * opt['model']['train']['epochs']) if (
+            loss_opt['disable_after'] = int(disable_after * (opt['model']['train']['epochs'] - 1)) if (
                     disable_after < 1) else disable_after
         else:
             loss_opt['disable_after'] = None

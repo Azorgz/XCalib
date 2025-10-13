@@ -1,0 +1,9 @@
+root_cameras:
+  - examples/FLIR_NIGHT/vis
+  - examples/FLIR_NIGHT/ir
+
+cameras_name:
+  - RGB
+  - IR
+
+stage: outdoor

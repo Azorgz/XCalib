@@ -1,12 +1,14 @@
 from .loss import Loss, LossCfgCommon
 from .loss_flow import LossFlow, LossFlowCfg
-from .loss_pose import LossPoseCfg, LossPose
+from .loss_image import LossImageCfg, LossImage
+from .loss_reg import LossReg, LossRegCfg
 
 LOSSES = {
     "flow": LossFlow,
-    "pose": LossPose}
+    "image": LossImage,
+    "reg": LossReg}
 
-LossCfg = LossFlowCfg | LossPoseCfg | LossCfgCommon
+LossCfg = LossFlowCfg | LossImageCfg | LossRegCfg | LossCfgCommon
 
 
 def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
@@ -17,10 +19,10 @@ def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
             self.metrics = metrics
             self.losses = {metric.cfg.name: [] for metric in metrics}
 
-        def __call__(self, batch, global_step: int):
+        def __call__(self, batch, global_step: int, cameras):
             loss_tot = 0.
             for metric in self.metrics:
-                l = metric(batch, global_step)
+                l = metric(batch, global_step, cameras)
                 self.losses[metric.cfg.name].append(l.detach().cpu().numpy())
                 loss_tot += l * metric.cfg.weight
             return loss_tot

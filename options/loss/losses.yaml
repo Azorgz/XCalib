@@ -1,15 +1,16 @@
 flow:
-  weight: 0.025
+  weight: 2.
   disable_after : 1/2
   enable_after: 0
 
-pose:
+image:
     weight: 1.0
     disable_after: null
     enable_after: 0
     losses:
       NEC:
         weight: 1.0
+### Losses for ablation study
 #      GC:
 #        weight: 1.0
 #      SSIM:
@@ -17,8 +18,14 @@ pose:
 #        window_size: 11
 #      nMI:
 #          weight: 1.0
-#      nCC:
-#          weight: 1.0
-#          window_size: 9
+
+
+#### Regularization terme to avoid large motions drift. (usefull only if flow is not used)
+reg:
+    weight: 2.0
+    disable_after: null
+    enable_after: 0
+
+
 
 

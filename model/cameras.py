@@ -138,7 +138,7 @@ class Cameras(Dataset, nn.Module):
                 "modality": modality}
 
     def __getitem__(self, idx: int):
-        if idx >= len(self):
+        while idx >= len(self):
             idx = idx - len(self)
         indices = self.indices[idx].numpy().tolist()
         items = [default_collate([self.read_image(cam, index) for index in indices]) for cam in self.cameras]

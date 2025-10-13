@@ -1,10 +1,12 @@
 from .backbone import Backbone
 from .backbone_depth_anything import BackboneZoe, BackboneZoeCfg
+from .backbone_depth_pro import BackboneDepthPro, BackboneDepthProCfg
 
+BACKBONES = {"zoe": BackboneZoe,
+             'pro': BackboneDepthPro}
 
-BACKBONES = {"zoe": BackboneZoe}
-
-BackboneCfg = BackboneZoeCfg
+BackboneCfg = {"zoe": BackboneZoeCfg,
+               'pro': BackboneDepthProCfg}
 
 
 def get_backbone(

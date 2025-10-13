@@ -13,7 +13,6 @@ from misc.Mytypes import Batch
 
 def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0):
     intrinsics = torch.cat([camera_target.intrinsics, camera_src.intrinsics], dim=0)
-    # relative_pose_ = (camera_target.extrinsics.inverse() @ camera_src.extrinsics.inverse())[None]
     dst_trans_src: Tensor = compose_transformations(
         camera_target.extrinsics, inverse_transformation(camera_src.extrinsics))
     return projection_frame_to_frame(batch,
@@ -69,8 +68,7 @@ def projection_frame_to_frame(batch: Batch,
 
     # Camera matrix from intrinsics
     cam_dst, cam_src = intrinsics[..., :3, :3].split(1, 0)
-    image_shape1 = depths.shape[-2:]
-    image_shape2 = images.shape[-2:]
+    image_shape = images.shape[-2:]
 
     # convert depth to 3d points
     points_3d_dst: Tensor = depth_to_3d(depths, cam_dst)[:, 0]  # Bx3xHxW
@@ -80,7 +78,7 @@ def projection_frame_to_frame(batch: Batch,
 
     points_2d_dst_trans: Tensor = torch.stack(
         [project_points(points_3d_dst_trans[i], cam_src) for i in range(b)])  # BxHxWx2
-    points_2d_dst_trans_norm: Tensor = normalize_pixel_coordinates(points_2d_dst_trans, *image_shape2).to(
+    points_2d_dst_trans_norm: Tensor = normalize_pixel_coordinates(points_2d_dst_trans, *image_shape).to(
         depths.dtype)[:, 0]  # BxHxWx2
     images2_1 = F.grid_sample(images, points_2d_dst_trans_norm, align_corners=True)
     return images2_1

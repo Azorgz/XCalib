@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import torch
-from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE
+from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE, SCC
 from jaxtyping import Float
 from torch import Tensor
 from torch_similarity.modules import GradientCorrelationLoss2d
@@ -36,16 +36,16 @@ class GC(GradientCorrelationLoss2d):
 
 
 @dataclass
-class LossPoseCfg(LossCfgCommon):
-    name: Literal["pose"]
+class LossImageCfg(LossCfgCommon):
+    name: Literal["image"]
     losses: dict
 
 
-losses_dict = {'NEC': NEC, 'GC': GC, 'SSIM': SSIM, 'RMSE': RMSE, }
+losses_dict = {'NEC': NEC, 'GC': GC, 'SSIM': SSIM, 'RMSE': RMSE, 'SCC': SCC}#, 'nMI': nMI}
 
 
-class LossPose(Loss[LossPoseCfg]):
-    def __init__(self, cfg: LossPoseCfg, targets: int, *args) -> None:
+class LossImage(Loss[LossImageCfg]):
+    def __init__(self, cfg: LossImageCfg, targets: int, *args) -> None:
         super().__init__(cfg, targets)
         self.losses = [losses_dict[k] for k in cfg.losses]
         self.weights = [cfg.losses[k]['weight'] for k in cfg.losses]
@@ -54,6 +54,7 @@ class LossPose(Loss[LossPoseCfg]):
             self,
             batch: Batch,
             global_step: int,
+            cameras,
     ) -> Float[Tensor, ""]:
         losses = 0
         list_idx = [(self.targets, i) for i in range(len(batch.images)) if i != self.targets]
@@ -71,10 +72,10 @@ class LossPose(Loss[LossPoseCfg]):
             if weight > 0:
                 metric = loss(device=device)
                 if isinstance(metric, NEC):
-                    loss, coeff = metric(reg, target, mask=reg * target > 0, return_coeff=True)
+                    loss, coeff = metric(reg, target, mask=reg * target > 0, return_coeff=True, weights=reg * target)
                     coeff = coeff / coeff.mean()
                 else:
-                    loss = metric(reg, target, mask=reg * target > 0)
+                    loss = metric(reg, target, mask=reg * target > 0, weights=reg * target)
                     coeff = 1.
                 loss_tot += (1 - loss if metric.higher_is_better else loss) * weight * coeff
         return loss_tot
