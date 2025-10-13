@@ -15,6 +15,8 @@ model:
     lr: 4e-3
     lr_after_unfreeze: 8e-4
     lr_decay: 0.98
+    refine_depth: False  # if True, the depth refiner is trained during training
+    epoch_refine_depth: 30  # nb of epochs for training the depth refiner
 
   validation:
     visualize_validation: True

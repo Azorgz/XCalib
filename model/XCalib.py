@@ -10,6 +10,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 
 from backbone import get_backbone
+from depth_refiner.refiner import DepthRefiner
+from enhancer import get_enhancer
 from frame_sampler import get_frame_sampler
 from loss import get_losses
 from misc.Mytypes import Batch
@@ -41,6 +43,11 @@ class XCalib(nn.Module):
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
+        if cfg.run_parameters['enhance_result_quality']:
+            self.enhancer = get_enhancer()
+        else:
+            self.enhancer = None
+        self.depth_refiner = DepthRefiner(self.cfg.model['target'])
         # Data
         self.number_cameras = len(self.cameras.cameras)
         self.images = DataCollector(cfg.train_collector)
@@ -118,9 +125,39 @@ class XCalib(nn.Module):
                     screen, valid_image = self.validation_step(screen)
         waitbar.close()
         self.cameras.freeze()
+        screen.close()
+        if self.train_parameters['refine_depth']:
+            self.optimize_depth_refiner()
+        elif self.validation_parameters['visualize_validation']:
+            valid_image.show(name=f'Final result', opencv=True)
+
+    def optimize_depth_refiner(self):
+        self.buffer_all()
+        optimization_step = 0
+        waitbar = tqdm(total=len(self.images)*self.train_parameters['epoch_refine_depth'],
+                       desc=f'Optimization of the parameters epoch {0}, lr: {self.depth_optimizer.param_groups[0]["lr"]*1e6:.3f}e-6, {self.LossModel}')
+        screen = None
+        for e in range(self.train_parameters['epoch_refine_depth']):
+            for j in range(math.ceil(len(self.images)/self.train_parameters['batch_size'])):
+                waitbar.desc = f'Optimization of the parameters epoch {e}, lr: {self.depth_optimizer.param_groups[0]["lr"]*1e6:.3f}e-6, {self.LossModel}'
+                optimization_step += 1
+                batch = self.images.get_batch(j)
+                # zero the parameter gradients
+                self.depth_optimizer.zero_grad()
+                # Wrap images
+                batch = self.wrap_frame_to_target(batch, refine_depth=True)
+                # Computes losses
+                loss = self.LossModel(batch, 0, self.cameras)
+                loss.backward()
+                self.depth_optimizer.step()
+                self.step_depth_scheduler()
+                waitbar.update(self.train_parameters['batch_size'])
+                if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
+                    screen, valid_image = self.validation_step(screen, refine_depth=True)
         if self.validation_parameters['visualize_validation']:
             screen.close()
             valid_image.show(name=f'Final result', opencv=True)
+        waitbar.close()
 
     def validation_step(self, screen, refine_depth=False):
         batch_val = self.validation.get_batch(0)
