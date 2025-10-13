@@ -10,6 +10,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 
 from backbone import get_backbone
+from enhancer import get_enhancer
 from frame_sampler import get_frame_sampler
 from loss import get_losses
 from misc.Mytypes import Batch
@@ -41,6 +42,7 @@ class XCalib(nn.Module):
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
+        self.enhancer = get_enhancer()
         # Data
         self.number_cameras = len(self.cameras.cameras)
         self.images = DataCollector(cfg.train_collector)
