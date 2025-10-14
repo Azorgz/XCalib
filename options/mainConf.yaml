@@ -7,10 +7,10 @@ model:
   device: 0  # GPU id, -1 for CPU
   train:
     batch_size: 4 # number of samples per batch for the second stage
-    shuffle: false
-    frame_sampler: sequential  # sequential
+    shuffle: True
+    frame_sampler: sequential  # sequential, random
     loss: [image, flow, reg]  # flow for coarse prepositioning, image for photometric fine-tuning
-    epochs: 12
+    epochs: 15
     unfreeze: 0.75  # epoch to unfreeze the whole parameters
     lr: 4e-3
     lr_after_unfreeze: 8e-4
@@ -18,7 +18,7 @@ model:
 
   validation:
     visualize_validation: True
-    mode_fusion: cross  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
+    mode_fusion: chessboard  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
     color_map_infrared: magma  # inferno, plasma, magma, viridis, cividis, gray...
     step_visualize: 1
     buffer_size: 4
@@ -33,8 +33,8 @@ data:
   equalize_infrared: True
 
 run_parameters:
-  mode: calibration_only  # all_in_one, calibration_only, registration_only
+  mode: all_in_one  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
   path_to_calib: null # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
-  enhance_result_quality: True  # Module borrowed from @PGMR
+  enhance_result_quality: False  # Module borrowed from @PGMR
 output: outputs/
