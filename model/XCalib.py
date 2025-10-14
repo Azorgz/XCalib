@@ -17,6 +17,7 @@ from misc.Mytypes import Batch
 from misc.utils import check_path, select_device
 from model.cameras import Cameras
 from model.spatial_transformer import depth_warp
+from model.validation import ValidationModule
 
 
 class XCalib(nn.Module):
@@ -25,9 +26,7 @@ class XCalib(nn.Module):
         #  Base options
         self.experiment = cfg.name_experiment
         self.scheduler = None
-        self.depth_scheduler = None
         self.optimizer = None
-        self.depth_optimizer = None
         self.path = cfg.output + '/' + cfg.name_experiment
         check_path(self.path)
         self.device = select_device(cfg.model['device'])
@@ -40,6 +39,7 @@ class XCalib(nn.Module):
             assert isfile(cfg.run_parameters['path_to_calib']), \
                 "Please provide a valid path to a calibration file to run registration only"
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
+        self.validation_module = ValidationModule(cfg.val_collector)
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
         self.enhancer = get_enhancer()
@@ -127,7 +127,7 @@ class XCalib(nn.Module):
     def validation_step(self, screen, refine_depth=False):
         batch_val = self.validation.get_batch(0)
         batch_val = self.wrap_frame_to_target(batch_val, refine_depth=refine_depth)
-        img = ImageTensor(batch_val.projections[0] / 2) + ImageTensor(batch_val.projections[1] / 2)
+        img = self.validation_module(batch_val)
         if screen is None:
             screen = img.show(name=f'Optimization on going...', opencv=True, asyncr=True)
         else:
@@ -176,9 +176,6 @@ class XCalib(nn.Module):
         lr_start = self.train_parameters['lr']
         self.optimizer = torch.optim.Adam(parameters, lr=lr_start)
         self.scheduler = ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
-        if self.train_parameters['refine_depth']:
-            self.depth_optimizer = torch.optim.Adam(self.depth_refiner.parameters(), lr=5e-3)#self.train_parameters['lr_after_unfreeze'])
-            self.depth_scheduler = ExponentialLR(self.depth_optimizer, gamma=1 - (1 - self.train_parameters['lr_decay'])/2)
 
     def step_scheduler(self):
         if self.scheduler is not None:

@@ -9,7 +9,7 @@ model:
     batch_size: 4 # number of samples per batch for the second stage
     shuffle: false
     frame_sampler: sequential  # sequential
-    loss: [image, flow, reg]  # flow for coarse prepositioning, pose for final calibration
+    loss: [image, flow, reg]  # flow for coarse prepositioning, image for photometric fine-tuning
     epochs: 12
     unfreeze: 0.75  # epoch to unfreeze the whole parameters
     lr: 4e-3
@@ -18,12 +18,14 @@ model:
 
   validation:
     visualize_validation: True
+    mode_fusion: cross  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
+    color_map_infrared: magma  # inferno, plasma, magma, viridis, cividis, gray...
     step_visualize: 1
     buffer_size: 4
     buffer_idx: #[0, 29]  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: FLIR_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MS2, MyDataset
+  name: FLIR_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True

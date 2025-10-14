@@ -1,8 +1,7 @@
 import os
 from argparse import Namespace
-
 import yaml
-
+from matplotlib import colormaps
 from backbone import BackboneCfg
 from misc.Mytypes import CamerasCfg
 
@@ -23,8 +22,12 @@ def get_validation_opt(opt):
     if opt['model']['validation']['buffer_idx'] is not None:
         assert opt['model']['validation']['buffer_idx']
         opt['model']['validation']['buffer_size'] = len(opt['model']['validation']['buffer_idx'])
+    assert opt['model']['validation']['mode_fusion'] in ['alpha_blending', 'chessboard', 'cross', 'crossfused', 'ldiag', 'rdiag', 'vstrip', 'hstrip'], 'This fusion mode does not exist'
+    assert opt['model']['validation']['color_map_infrared'] in list(colormaps), 'This color does not exist'
     cfg_val_data = {'buffer_size': opt['model']['validation']['buffer_size'],
                     'nb_cam': opt['data'].nb_cam,
+                    'mode_fusion': opt['model']['validation']['mode_fusion'],
+                    'color_map_infrared': opt['model']['validation']['color_map_infrared'],
                     'batch_size': opt['model']['validation']['buffer_size'],
                     'target': opt['model']['target'],
                     'cameras_names': opt['data'].cameras_name,
