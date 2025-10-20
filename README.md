@@ -74,11 +74,11 @@ We recommend using a Conda environment.
 
 ```bash
 git clone https://github.com/Azorgz/XCalib2.git
-cd XCalib2
+cd XCalib
 
 # Create conda env
 conda env create -f environment.yml
-conda activate XCalib2
+conda activate XCalib
 
 # (Alternatively) pip install dependencies
 pip install -r requirements.txt

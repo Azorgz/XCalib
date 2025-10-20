@@ -1,7 +1,6 @@
 import math
 from os.path import isfile
 
-import cv2
 import numpy as np
 import torch
 from ImagesCameras import ImageTensor, CameraSetup
@@ -9,10 +8,10 @@ from torch import nn
 from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 
-from backbone import get_backbone
-from enhancer import get_enhancer
-from frame_sampler import get_frame_sampler
-from loss import get_losses
+from model.backbone import get_backbone
+from model.enhancer import get_enhancer
+from model.frame_sampler import get_frame_sampler
+from model.loss import get_losses
 from misc.Mytypes import Batch
 from misc.utils import check_path, select_device
 from model.cameras import Cameras
@@ -31,7 +30,7 @@ class XCalib(nn.Module):
         check_path(self.path)
         self.device = select_device(cfg.model['device'])
         self.cfg = cfg
-        self.output_path = cfg.output + cfg.data.name
+        self.output_path = cfg.output + cfg.name_experiment
         self.train_parameters = self.cfg.model['train']
         self.validation_parameters = self.cfg.model['validation']
         #  Models
@@ -42,7 +41,7 @@ class XCalib(nn.Module):
         self.validation_module = ValidationModule(cfg.val_collector)
         self.depthModel = get_backbone(cfg.model['depth'])
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
-        self.enhancer = get_enhancer()
+        self.enhancer = get_enhancer() if cfg.run_parameters['enhance_result_quality'] else None
         # Data
         self.number_cameras = len(self.cameras.cameras)
         self.images = DataCollector(cfg.train_collector)
@@ -103,7 +102,8 @@ class XCalib(nn.Module):
                 self.optimizer.param_groups[0]["lr"] = self.train_parameters['lr_after_unfreeze']
 
             for j in range(math.ceil(len(self.images)/self.train_parameters['batch_size'])):
-                waitbar.desc = f'Optimization of the parameters epoch {e}, lr: {self.optimizer.param_groups[0]["lr"] * 1000:.3f}e-3, {self.LossModel}'
+                waitbar.desc = (f'Optimization of the parameters epoch {e}, lr: {self.optimizer.param_groups[0]["lr"] * 1000:.3f}e-3, '
+                                f'{self.LossModel}')
                 optimization_step += 1
                 batch = self.images.get_batch(j)
                 # zero the parameter gradients
@@ -154,7 +154,8 @@ class XCalib(nn.Module):
                         else:
                             p = ImageTensor(p)
                         p.save(self.output_path, name=name, depth=8)
-            waitbar.update(len(batch.indices))
+            waitbar.update(len(batch.indices[0]))
+        waitbar.close()
         self.cameras.cfg = old_setup
 
     def wrap_frame_to_target(self, batch: Batch, refine_depth=False) -> Batch:
@@ -186,7 +187,7 @@ class XCalib(nn.Module):
             self.depth_scheduler.step()
 
     def save_cameras_rig(self):
-        cams = self.cameras.cameras.list
+        cams = [cam.clone() for cam in self.cameras.cameras.list]
         extrinsics = [cam.extrinsics for cam in cams]
         rig = CameraSetup(*cams)
         rig.update_camera_relative_position(cams[0].id, extrinsics=extrinsics[0])

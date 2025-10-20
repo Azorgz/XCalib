@@ -1,4 +1,4 @@
-from frame_sampler.frame_sampler import FrameSampler, FrameSamplerSequence
+from model.frame_sampler.frame_sampler import FrameSampler, FrameSamplerSequence
 
 FRAME_SAMPLER = {
     "random": FrameSampler,

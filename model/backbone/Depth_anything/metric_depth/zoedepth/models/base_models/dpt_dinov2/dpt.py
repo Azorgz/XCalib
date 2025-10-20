@@ -139,7 +139,7 @@ class DPT_DINOv2(nn.Module):
 
         torch.manual_seed(1)
         
-        self.pretrained = torch.hub.load(os.getcwd() + '/backbone/Depth_anything/torchhub/facebookresearch_dinov2_main',
+        self.pretrained = torch.hub.load(os.getcwd() + '/model/backbone/Depth_anything/torchhub/facebookresearch_dinov2_main',
                                          'dinov2_{:}14'.format(encoder),
                                          source='local',
                                          pretrained=False)

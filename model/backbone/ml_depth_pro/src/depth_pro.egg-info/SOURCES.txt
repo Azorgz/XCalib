@@ -18,6 +18,7 @@ src/depth_pro.egg-info/requires.txt
 src/depth_pro.egg-info/top_level.txt
 src/depth_pro/cli/__init__.py
 src/depth_pro/cli/run.py
+src/depth_pro/eval/__init__.py
 src/depth_pro/eval/boundary_metrics.py
 src/depth_pro/eval/dis5k_sample_list.txt
 src/depth_pro/network/__init__.py

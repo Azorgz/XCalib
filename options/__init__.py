@@ -2,7 +2,7 @@ import os
 from argparse import Namespace
 import yaml
 from matplotlib import colormaps
-from backbone import BackboneCfg
+from model.backbone import BackboneCfg
 from misc.Mytypes import CamerasCfg
 
 

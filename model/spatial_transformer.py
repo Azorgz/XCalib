@@ -14,7 +14,7 @@ from misc.Mytypes import Batch
 def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0):
     intrinsics = torch.cat([camera_target.intrinsics, camera_src.intrinsics], dim=0)
     dst_trans_src: Tensor = compose_transformations(
-        camera_target.extrinsics, inverse_transformation(camera_src.extrinsics))
+        inverse_transformation(camera_target.extrinsics), camera_src.extrinsics)
     return projection_frame_to_frame(batch,
                                      dst_trans_src,
                                      intrinsics,

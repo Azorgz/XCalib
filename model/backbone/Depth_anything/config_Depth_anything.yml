@@ -1,0 +1,4 @@
+inference_size: [384, 518]
+path_checkpoint: local::model/backbone/Depth_anything/metric_depth/checkpoints/depth_anything_metric_depth_outdoor.pt
+max_depth: 200
+

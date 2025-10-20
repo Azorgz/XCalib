@@ -1,4 +1,4 @@
 name: pro
 
 pretrained: True
-checkpoint: /backbone/ml_depth_pro/checkpoints/depth_pro.pt
+checkpoint: /model/backbone/ml_depth_pro/checkpoints/depth_pro.pt

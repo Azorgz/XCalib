@@ -1,4 +1,4 @@
-name: XCalib2
+name: XCalib
 channels:
   - pytorch
   - nvidia

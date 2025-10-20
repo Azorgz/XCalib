@@ -4,13 +4,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from einops import rearrange
 from torch import nn, Tensor
 from torch.nn.functional import interpolate
 
-from backbone.Depth_anything.metric_depth.zoedepth.models.builder import build_model
-from backbone.Depth_anything.metric_depth.zoedepth.utils.config import get_config
-from backbone import Backbone
+from model.backbone.Depth_anything.metric_depth.zoedepth.models.builder import build_model
+from model.backbone.Depth_anything.metric_depth.zoedepth.utils.config import get_config
+from model.backbone import Backbone
 from misc.utils import configure_parser
 
 
@@ -34,11 +33,11 @@ class BackboneZoe(Backbone[BackboneZoeCfg]):
         self.buildcore()
 
     def buildcore(self):
-        sys.path.append(os.getcwd() + '/backbone/Depth_anything/metric_depth')
+        sys.path.append(os.getcwd() + '/model/backbone/Depth_anything/metric_depth')
         parser = get_config('zoedepth', "infer")
         config = configure_parser(parser,
                                   None,
-                                  path_config=os.getcwd() + '/backbone/Depth_anything/config_Depth_anything.yml',
+                                  path_config=os.getcwd() + '/model/backbone/Depth_anything/config_Depth_anything.yml',
                                   dict_vars=None)
         config.pretrained_resource = config.path_checkpoint
         # Depth model

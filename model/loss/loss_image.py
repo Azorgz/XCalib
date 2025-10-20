@@ -2,37 +2,15 @@ from dataclasses import dataclass
 from typing import Literal
 
 import torch
-from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE, SCC
+from ImagesCameras import ImageTensor
+from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE, NCC, PSNR, GradientCorrelation
 from jaxtyping import Float
+from kornia import create_meshgrid
 from torch import Tensor
 from torch_similarity.modules import GradientCorrelationLoss2d
 
 from misc.Mytypes import Batch
 from .loss import Loss, LossCfgCommon
-
-
-class GC(GradientCorrelationLoss2d):
-    higher_is_better = True
-
-    def __init__(self, device):
-        super().__init__(return_map=True)
-        self.device = device
-        self.to(device)
-
-    def forward(self, x, y, mask=None, weights=None, return_coeff=False):
-        _, gc_map = super().forward(x, y)
-        b, c, h, w = x.shape
-
-        if weights is not None:
-            gc_map_ = gc_map * weights
-        else:
-            gc_map_ = gc_map
-        if mask is not None:
-            gc_map_ *= mask
-        if return_coeff:
-            return torch.abs(gc_map_.flatten(1, -1).sum(-1)), torch.abs(gc_map.flatten(1, -1).sum(-1))
-        else:
-            return torch.abs(gc_map_.flatten(1, -1).sum(-1))
 
 
 @dataclass
@@ -41,7 +19,8 @@ class LossImageCfg(LossCfgCommon):
     losses: dict
 
 
-losses_dict = {'NEC': NEC, 'GC': GC, 'SSIM': SSIM, 'RMSE': RMSE, 'SCC': SCC}#, 'nMI': nMI}
+losses_dict = {'NEC': NEC, 'GC': GradientCorrelation, 'SSIM': SSIM,
+               'RMSE': RMSE, 'NCC': NCC, 'PSNR': PSNR, 'MSE': MSE}
 
 
 class LossImage(Loss[LossImageCfg]):
@@ -71,11 +50,20 @@ class LossImage(Loss[LossImageCfg]):
         for weight, loss in zip(self.weights, self.losses):
             if weight > 0:
                 metric = loss(device=device)
+                xy = create_meshgrid(*target.shape[-2:], device=device)
+                weights = (xy[:, :, :, 0] ** 2 + xy[:, :, :, 1] ** 2 + 1) / 2
                 if isinstance(metric, NEC):
-                    loss, coeff = metric(reg, target, mask=reg * target > 0, return_coeff=True, weights=reg * target)
+                    loss, coeff = metric(target, reg, mask=reg * target > 0, return_coeff=True, weights=weights)
                     coeff = coeff / coeff.mean()
                 else:
-                    loss = metric(reg, target, mask=reg * target > 0, weights=reg * target)
+                    loss = metric(target, reg, mask=reg * target > 0, weights=weights)
                     coeff = 1.
-                loss_tot += (1 - loss if metric.higher_is_better else loss) * weight * coeff
+                if metric.higher_is_better:
+                    if metric.range_max == 1:
+                        loss = (1 - loss) * weight * coeff
+                    else:
+                        loss = weight * coeff / (loss + 1e-8)
+                else:
+                    loss = loss * weight * coeff
+                loss_tot += loss
         return loss_tot

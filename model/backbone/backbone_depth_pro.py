@@ -1,14 +1,12 @@
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from backbone.ml_depth_pro.src import depth_pro
+import depth_pro
 import torch
-from einops import rearrange
 from torch import nn, Tensor
-from backbone import Backbone
+from model.backbone import Backbone
 from depth_pro.depth_pro import DepthProConfig
 
 

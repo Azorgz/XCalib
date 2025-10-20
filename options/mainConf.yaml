@@ -1,31 +1,31 @@
-name_experiment: FLIR_DAY
+name_experiment: FLIR_wo_image_wo_reg
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number
-  depth: zoe
+  depth: zoe  #
   buffer_size: 48  # number of frames used to calibrate
   device: 0  # GPU id, -1 for CPU
   train:
     batch_size: 4 # number of samples per batch for the second stage
     shuffle: True
-    frame_sampler: sequential  # sequential, random
-    loss: [image, flow, reg]  # flow for coarse prepositioning, image for photometric fine-tuning
-    epochs: 15
+    frame_sampler: random  # sequential, random
+    loss: [flow]  # flow for coarse prepositioning, image for photometric fine-tuning
+    epochs: 12
     unfreeze: 0.75  # epoch to unfreeze the whole parameters
-    lr: 4e-3
+    lr: 5e-3
     lr_after_unfreeze: 8e-4
-    lr_decay: 0.98
+    lr_decay: 0.98  # multiplicative factor for lr decay every step
 
   validation:
     visualize_validation: True
-    mode_fusion: chessboard  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
-    color_map_infrared: magma  # inferno, plasma, magma, viridis, cividis, gray...
-    step_visualize: 1
+    mode_fusion: alpha_blending  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
+    color_map_infrared: twilight  # inferno, plasma, magma, viridis, cividis, gray...
+    step_visualize: 1 # Frequency of the screen update during the training (in steps)
     buffer_size: 4
-    buffer_idx: #[0, 29]  # LIST of idx of the images used for validation or null. Overrides buffer_size
+    buffer_idx: [0, 29, 45, 50]  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: FLIR_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
+  name: LYNRED_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True
@@ -35,6 +35,6 @@ data:
 run_parameters:
   mode: all_in_one  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
-  path_to_calib: null # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
-  enhance_result_quality: False  # Module borrowed from @PGMR
+  path_to_calib: #/home/godeta/PycharmProjects/Disparity_Pipeline/Setup_Camera/Lynred_day_ICCV.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
+  enhance_result_quality: True  # Module borrowed from @PGMR
 output: outputs/

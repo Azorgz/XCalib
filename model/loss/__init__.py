@@ -17,18 +17,22 @@ def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
     class ModelLoss:
         def __init__(self, metrics: list):
             self.metrics = metrics
-            self.losses = {metric.cfg.name: [] for metric in metrics}
+            self.losses = {metric.cfg.name: [None] for metric in metrics}
 
         def __call__(self, batch, global_step: int, cameras):
             loss_tot = 0.
             for metric in self.metrics:
                 l = metric(batch, global_step, cameras)
-                self.losses[metric.cfg.name].append(l.detach().cpu().numpy())
-                loss_tot += l * metric.cfg.weight
+                if l is not None:
+                    loss_tot += l * metric.cfg.weight
+                    self.losses[metric.cfg.name].append(l.detach().cpu().numpy())
+                else:
+                    self.losses[metric.cfg.name].append(None)
+
             return loss_tot
 
         def __str__(self):
-            return ", ".join([f"{k}: {v[-1] if len(v) > 0 else 0.:.3f}" for k, v in self.losses.items()])
+            return ", ".join([f"{k}: {v[-1]:.4f}" for k, v in self.losses.items() if v[-1] is not None])
 
     return ModelLoss(losses)
 
