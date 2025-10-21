@@ -1,15 +1,15 @@
-name_experiment: FLIR_wo_image_wo_reg
+name_experiment: LYNRED_DAY
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number
-  depth: zoe  #
+  depth: pro  #
   buffer_size: 48  # number of frames used to calibrate
   device: 0  # GPU id, -1 for CPU
   train:
     batch_size: 4 # number of samples per batch for the second stage
     shuffle: True
     frame_sampler: random  # sequential, random
-    loss: [flow]  # flow for coarse prepositioning, image for photometric fine-tuning
+    loss: [flow, image, reg]  # flow for coarse prepositioning, image for photometric fine-tuning
     epochs: 12
     unfreeze: 0.75  # epoch to unfreeze the whole parameters
     lr: 5e-3

@@ -1,4 +1,4 @@
-# XCalib2  
+# XCalib  
 
 **Official implementation of the paper:** *Unsupervised Cameras Calibration for Thermal-Visible Image Registration*  
 

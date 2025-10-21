@@ -1,11 +1,15 @@
 ### Loss configuration file.
 ### Each loss can be activated or deactivated at a given epoch.
+# The args are:
+#   weight: weighting factor for the loss
+#   disable_after: epoch after which the loss is deactivated (null means never - must be between [0 1] * epochs_total)
+#   enable_after: epoch after which the loss is activated
 ### If a loss is deactivated, it will not be computed at all
 
 ### Optical Flow loss for coarse prepositioning (OFF after epochs_total / 2 epochs).
 flow:
   weight: 2.
-  disable_after : null
+  disable_after : 1/2
   enable_after: 0
 
 
@@ -34,7 +38,7 @@ image:
 #### Regularization term to avoid large motions drift (always ON).
 reg:
     weight: 2.0
-    disable_after: 1/2
+    disable_after: null
     enable_after: 0
 
 
