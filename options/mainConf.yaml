@@ -2,7 +2,7 @@ name_experiment: LYNRED_DAY
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number
-  depth: pro  #
+  depth: zoe  #
   buffer_size: 48  # number of frames used to calibrate
   device: 0  # GPU id, -1 for CPU
   train:

@@ -53,7 +53,7 @@ class BackboneDepthPro(Backbone[BackboneDepthProCfg]):
         :return: BackboneOutput
         """
         images_t = self.transform(images)
-        out_model = self.infer_depth_memory_save(images_t, 6)
+        out_model = self.infer_depth_memory_save(images_t, 8)
         out = out_model['depth'][:, None]
 
         return out
