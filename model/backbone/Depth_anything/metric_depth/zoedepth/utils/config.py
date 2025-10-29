@@ -162,7 +162,7 @@ DATASETS_CONFIG = {
     },
     "diml_outdoor": {
         "dataset": "diml_outdoor",
-        "diml_outdoor_root": os.path.join(HOME_DIR, "DIML/outdoor/test/LR"),
+        "diml_outdoor_root": os.path.join(HOME_DIR, "DIML/outdoor/test_0/LR"),
         "eigen_crop": False,
         "garg_crop": True,
         "do_kb_crop": False,
@@ -404,7 +404,7 @@ def get_config(model_name, mode='train', dataset=None, **overwrite_kwargs):
     overwrite_kwargs = split_combined_args(overwrite_kwargs)
     config = {**config, **overwrite_kwargs}
 
-    # Casting to bool   # TODO: Not necessary. Remove and test
+    # Casting to bool   # TODO: Not necessary. Remove and test_0
     for key in KEYS_TYPE_BOOL:
         if key in config:
             config[key] = bool(config[key])

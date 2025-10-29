@@ -22,7 +22,7 @@ _Target = int
 class _Split(Enum):
     TRAIN = "train"
     VAL = "val"
-    TEST = "test"  # NOTE: torchvision does not support the test split
+    TEST = "test_0"  # NOTE: torchvision does not support the test_0 split
 
     @property
     def length(self) -> int:

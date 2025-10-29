@@ -81,7 +81,7 @@ class ToTensor(object):
 
 
 class VKITTI2(Dataset):
-    def __init__(self, data_dir_root, do_kb_crop=True, split="test"):
+    def __init__(self, data_dir_root, do_kb_crop=True, split="test_0"):
         import glob
 
         # image paths are of the form <data_dir_root>/rgb/<scene>/<variant>/frames/<rgb,depth>/Camera<0,1>/rgb_{}.jpg
@@ -92,7 +92,7 @@ class VKITTI2(Dataset):
         self.do_kb_crop = True
         self.transform = ToTensor()
 
-        # If train test split is not created, then create one.
+        # If train test_0 split is not created, then create one.
         # Split is such that 8% of the frames from each scene are used for testing.
         if not os.path.exists(os.path.join(data_dir_root, "train.txt")):
             import random
@@ -108,7 +108,7 @@ class VKITTI2(Dataset):
                 test_files.extend(scene_files[int(len(scene_files) * 0.92):])
             with open(os.path.join(data_dir_root, "train.txt"), "w") as f:
                 f.write("\n".join(train_files))
-            with open(os.path.join(data_dir_root, "test.txt"), "w") as f:
+            with open(os.path.join(data_dir_root, "test_0.txt"), "w") as f:
                 f.write("\n".join(test_files))
 
         if split == "train":
@@ -116,8 +116,8 @@ class VKITTI2(Dataset):
                 self.image_files = f.read().splitlines()
             self.depth_files = [r.replace("/rgb/", "/depth/").replace(
                 "rgb_", "depth_").replace(".jpg", ".png") for r in self.image_files]
-        elif split == "test":
-            with open(os.path.join(data_dir_root, "test.txt"), "r") as f:
+        elif split == "test_0":
+            with open(os.path.join(data_dir_root, "test_0.txt"), "r") as f:
                 self.image_files = f.read().splitlines()
             self.depth_files = [r.replace("/rgb/", "/depth/").replace(
                 "rgb_", "depth_").replace(".jpg", ".png") for r in self.image_files]

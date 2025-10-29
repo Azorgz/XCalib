@@ -121,5 +121,5 @@ def get_diml_indoor_loader(data_dir_root, batch_size=1, **kwargs):
     dataset = DIML_Indoor(data_dir_root)
     return DataLoader(dataset, batch_size, **kwargs)
 
-# get_diml_indoor_loader(data_dir_root="datasets/diml/indoor/test/HR")
-# get_diml_indoor_loader(data_dir_root="datasets/diml/indoor/test/LR")
+# get_diml_indoor_loader(data_dir_root="datasets/diml/indoor/test_0/HR")
+# get_diml_indoor_loader(data_dir_root="datasets/diml/indoor/test_0/LR")

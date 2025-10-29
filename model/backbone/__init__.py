@@ -13,5 +13,4 @@ def get_backbone(
         cfg: BackboneCfg,
 ) -> Backbone:
     depth_model = BACKBONES[cfg.name](cfg)
-    depth_model.eval()
     return depth_model

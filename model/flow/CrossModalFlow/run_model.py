@@ -11,7 +11,7 @@ from get_model import get_model
 
 model = get_model()
 
-dataset = ['LLVIP']  #'Lynred_day', 'Lynred_night', 'FLIR_day', 'FLIR_night', 'CATS_in', 'CATS_out'
+dataset = ['LLVIP']  #'Lynred_day', 'Lynred_night', 'FLIR_DAY', 'FLIR_NIGHT', 'CATS_in', 'CATS_out'
 
 
 def img2tensor(img):

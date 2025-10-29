@@ -217,7 +217,7 @@ if __name__ == '__main__':
     flow = load_flow(r'D:\optical_flow\FlyingThings3D_subset\FlyingThings3D_subset\train\flow\left\into_future\0000000.flo')
     img = vis_flow(flow)
     import imageio
-    imageio.imsave('test.png', img)
+    imageio.imsave('test_0.png', img)
     import cv2
     cv2.imshow('', img[:,:,:])
     cv2.waitKey()

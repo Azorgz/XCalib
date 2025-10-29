@@ -345,7 +345,7 @@ class DepthAnythingCore(nn.Module):
 
         depth_anything = DPT_DINOv2(out_channels=[256, 512, 1024, 1024], use_clstoken=False)
 
-        # state_dict = torch.load(os.getcwd() + '/backbone/Depth_anything/checkpoints/depth_anything_vitl14.pth',
+        # state_dict = torch.load(os.getcwd() + '/backbone/Depth_anything/checkpoint/depth_anything_vitl14.pth',
         #                         map_location='cpu', weights_only=True)
         # depth_anything.load_state_dict(state_dict)
 

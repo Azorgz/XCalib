@@ -103,7 +103,7 @@ class MpiSintel(FlowDataset):
         flow_root = osp.join(root, split, 'flow')
         image_root = osp.join(root, split, dstype)
 
-        if split == 'test':
+        if split == 'test_0':
             self.is_test = True
 
         for scene in os.listdir(image_root):
@@ -112,7 +112,7 @@ class MpiSintel(FlowDataset):
                 self.image_list += [ [image_list[i], image_list[i+1]] ]
                 self.extra_info += [ (scene, i) ] # scene and frame_id
 
-            if split != 'test':
+            if split != 'test_0':
                 self.flow_list += sorted(glob(osp.join(flow_root, scene, '*.flo')))
 
 

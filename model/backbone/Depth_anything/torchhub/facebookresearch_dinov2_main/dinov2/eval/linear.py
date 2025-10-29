@@ -57,7 +57,7 @@ def get_args_parser(
         help="Validation dataset",
     )
     parser.add_argument(
-        "--test-datasets",
+        "--test_0-datasets",
         dest="test_dataset_strs",
         type=str,
         nargs="+",
@@ -102,7 +102,7 @@ def get_args_parser(
     parser.add_argument(
         "--no-resume",
         action="store_true",
-        help="Whether to not resume from existing checkpoints",
+        help="Whether to not resume from existing checkpoint",
     )
     parser.add_argument(
         "--val-metric-type",
@@ -111,7 +111,7 @@ def get_args_parser(
         help="Validation metric",
     )
     parser.add_argument(
-        "--test-metric-types",
+        "--test_0-metric-types",
         type=MetricType,
         choices=list(MetricType),
         nargs="+",
@@ -128,7 +128,7 @@ def get_args_parser(
         help="Path to a file containing a mapping to adjust classifier outputs",
     )
     parser.add_argument(
-        "--test-class-mapping-fpaths",
+        "--test_0-class-mapping-fpaths",
         nargs="+",
         type=str,
         help="Path to a file containing a mapping to adjust classifier outputs",

@@ -39,7 +39,7 @@ class BackboneDepthPro(Backbone[BackboneDepthProCfg]):
         )
         depth_model, self.transform = depth_pro.create_model_and_transforms(config=config,
                                                                             device=torch.device('cuda:0'))
-        depth_model.eval()
+        depth_model = depth_model.eval()
         self.model = depth_model.infer
 
     def to(self, device) -> nn.Module:
@@ -53,7 +53,7 @@ class BackboneDepthPro(Backbone[BackboneDepthProCfg]):
         :return: BackboneOutput
         """
         images_t = self.transform(images)
-        out_model = self.infer_depth_memory_save(images_t, 8)
+        out_model = self.infer_depth_memory_save(images_t, 5)
         out = out_model['depth'][:, None]
 
         return out

@@ -24,7 +24,7 @@ pip install -e .
 
 To download pretrained checkpoints follow the code snippet below:
 ```bash
-source get_pretrained_models.sh   # Files will be downloaded to `checkpoints` directory.
+source get_pretrained_models.sh   # Files will be downloaded to `checkpoint` directory.
 ```
 
 ### Running from commandline

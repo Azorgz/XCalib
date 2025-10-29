@@ -68,7 +68,7 @@ class BaseTrainer:
             )
         return prediction
 
-    def load_ckpt(self, checkpoint_dir="./checkpoints", ckpt_type="best"):
+    def load_ckpt(self, checkpoint_dir="./checkpoint", ckpt_type="best"):
         import glob
         import os
 

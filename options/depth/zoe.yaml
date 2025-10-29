@@ -3,5 +3,5 @@ name: zoe
 pretrained: true
 inference_size: [384, 518]
 max_depth: 20.
-checkpoint_base: local::/Depth_anything/checkpoints/depth_anything_vitl14.pth
-checkpoint_metric: local::/Depth_anything/metric_depth/checkpoints/depth_anything_metric_depth_outdoor.pt
+checkpoint_base: local::/Depth_anything/checkpoint/depth_anything_vitl14.pth
+checkpoint_metric: local::/Depth_anything/metric_depth/checkpoint/depth_anything_metric_depth_outdoor.pt

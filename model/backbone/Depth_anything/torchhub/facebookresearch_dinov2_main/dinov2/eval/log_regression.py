@@ -410,8 +410,8 @@ def eval_log_regression_with_model(
         "\n".join(
             [
                 "Training of the supervised logistic regression on frozen features completed.\n"
-                "Top-1 test accuracy: {acc:.1f}".format(acc=results_dict["top-1"]),
-                "Top-5 test accuracy: {acc:.1f}".format(acc=results_dict["top-5"]),
+                "Top-1 test_0 accuracy: {acc:.1f}".format(acc=results_dict["top-1"]),
+                "Top-5 test_0 accuracy: {acc:.1f}".format(acc=results_dict["top-5"]),
                 "obtained for C = {c:.6f}".format(c=results_dict["best_C"]),
             ]
         )

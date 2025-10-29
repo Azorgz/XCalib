@@ -9,7 +9,7 @@
 ### Optical Flow loss for coarse prepositioning (OFF after epochs_total / 2 epochs).
 flow:
   weight: 2.
-  disable_after : 1/2
+  disable_after : null
   enable_after: 0
 
 
@@ -25,8 +25,8 @@ image:
 ### Losses for ablation study
 #      GC:
 #        weight: 1.0
-#      SSIM:
-#        weight: 1.0
+      SSIM:
+        weight: 0.50
 #      RMSE:
 #          weight: 1.0
 #      PSNR:

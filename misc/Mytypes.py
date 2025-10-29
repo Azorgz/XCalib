@@ -9,6 +9,7 @@ import torch
 from jaxtyping import Bool, Int64
 from jaxtyping import Float
 from torch import Tensor
+from torch.utils.data import Dataset
 
 T = TypeVar("T")
 
@@ -145,13 +146,13 @@ class CamerasCfg:
     equalize_visible: bool = False
     equalize_infrared: bool = False
     from_file: str | Path | None = None
+    from_data: Dataset | None = None
 
 
 @dataclass
 class Batch(Manipulable):
     images: list[list[Float[Tensor, "batch channel height=_ width=_"]]]
     indices: list
-    # datasets: str
     modality: list[Literal["Visible", "IR"]]
     cameras: list[str]
     frame_paths: list[list[str | Path | None]] | None = None

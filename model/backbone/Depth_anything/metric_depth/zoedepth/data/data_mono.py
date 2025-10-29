@@ -157,7 +157,7 @@ class DepthDataLoader(object):
             self.testing_samples = DataLoadPreprocess(
                 config, mode, transform=transform)
             if config.distributed:  # redundant. here only for readability and to be more explicit
-                # Give whole test set to all processes (and report evaluation only on one) regardless
+                # Give whole test_0 set to all processes (and report evaluation only on one) regardless
                 self.eval_sampler = None
             else:
                 self.eval_sampler = None
@@ -167,7 +167,7 @@ class DepthDataLoader(object):
                                    pin_memory=False,
                                    sampler=self.eval_sampler)
 
-        elif mode == 'test':
+        elif mode == 'test_0':
             self.testing_samples = DataLoadPreprocess(
                 config, mode, transform=transform)
             self.data = DataLoader(self.testing_samples,
@@ -175,7 +175,7 @@ class DepthDataLoader(object):
 
         else:
             print(
-                'mode should be one of \'train, test, online_eval\'. Got {}'.format(mode))
+                'mode should be one of \'train, test_0, online_eval\'. Got {}'.format(mode))
 
 
 def repetitive_roundrobin(*iterables):
@@ -527,7 +527,7 @@ class ToTensor(object):
         image = self.normalize(image)
         image = self.resize(image)
 
-        if self.mode == 'test':
+        if self.mode == 'test_0':
             return {'image': image, 'focal': focal}
 
         depth = sample['depth']

@@ -32,6 +32,7 @@ class BackboneZoe(Backbone[BackboneZoeCfg]):
         super().__init__(cfg)
         self.buildcore()
 
+
     def buildcore(self):
         sys.path.append(os.getcwd() + '/model/backbone/Depth_anything/metric_depth')
         parser = get_config('zoedepth', "infer")
@@ -43,6 +44,7 @@ class BackboneZoe(Backbone[BackboneZoeCfg]):
         # Depth model
         depth_model = build_model(config)
         depth_model.requires_grad = False
+        depth_model = depth_model.eval()
         self.add_module('model', depth_model)
 
     def to(self, device) -> nn.Module:

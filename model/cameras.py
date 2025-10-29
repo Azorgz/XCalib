@@ -59,7 +59,7 @@ class Cameras(Dataset, nn.Module):
 
     def from_file(self, path: str | os.PathLike):
         setup = CameraSetup(from_file=path)
-        from_setup = [(cam.path, cam.intrinsics[0], cam.extrinsics[0, :, :] if cam.name != setup.camera_ref else setup.base2Ref[0, 0, :, :], cam.id, cam.name) for i, cam in enumerate(setup.cameras.values())]
+        from_setup = [(cam.path, cam.intrinsics[0], cam.extrinsics[0, :, :], cam.id, cam.name) for i, cam in enumerate(setup.cameras.values())]
         cams = [LearnableCamera(v[0], intrinsics=v[1], extrinsics=v[2], id=v[3], name=v[4]) for v in from_setup]
         self.cameras = CameraBundle(cams)
         self.modality = [cam.modality for cam in cams]

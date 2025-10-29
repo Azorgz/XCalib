@@ -42,7 +42,7 @@ def get_checkpoint_path(cluster_type: Optional[ClusterType] = None) -> Optional[
         return None
 
     CHECKPOINT_DIRNAMES = {
-        ClusterType.AWS: "checkpoints",
+        ClusterType.AWS: "checkpoint",
         ClusterType.FAIR: "checkpoint",
         ClusterType.RSC: "checkpoint/dino",
     }

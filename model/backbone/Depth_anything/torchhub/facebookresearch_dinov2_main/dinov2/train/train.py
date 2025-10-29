@@ -53,7 +53,7 @@ For python-based LazyConfig, use "path.key=value".
         "--output_dir",
         default="",
         type=str,
-        help="Output directory to save logs and checkpoints",
+        help="Output directory to save logs and checkpoint",
     )
 
     return parser

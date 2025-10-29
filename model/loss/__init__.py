@@ -14,7 +14,7 @@ LossCfg = LossFlowCfg | LossImageCfg | LossRegCfg | LossCfgCommon
 def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
     losses = [LOSSES[cfg.name](cfg, targets) for cfg in cfgs]
 
-    class ModelLoss:
+    class LossModel:
         def __init__(self, metrics: list):
             self.metrics = metrics
             self.losses = {metric.cfg.name: [None] for metric in metrics}
@@ -34,5 +34,5 @@ def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
         def __str__(self):
             return ", ".join([f"{k}: {v[-1]:.4f}" for k, v in self.losses.items() if v[-1] is not None])
 
-    return ModelLoss(losses)
+    return LossModel(losses)
 

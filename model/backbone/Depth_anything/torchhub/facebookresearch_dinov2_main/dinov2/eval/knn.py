@@ -99,10 +99,10 @@ def get_args_parser(
 
 class KnnModule(torch.nn.Module):
     """
-    Gets knn of test features from all processes on a chunk of the train features
+    Gets knn of test_0 features from all processes on a chunk of the train features
 
-    Each rank gets a chunk of the train features as well as a chunk of the test features.
-    In `compute_neighbors`, for each rank one after the other, its chunk of test features
+    Each rank gets a chunk of the train features as well as a chunk of the test_0 features.
+    In `compute_neighbors`, for each rank one after the other, its chunk of test_0 features
     is sent to all devices, partial knns are computed with each chunk of train features
     then collated back on the original device.
     """

@@ -10,7 +10,7 @@ def get_train_opt(opt):
     cfg_train_data = {'buffer_size': opt['model']['buffer_size'],
                       'nb_cam': opt['data'].nb_cam,
                       'batch_size': opt['model']['train']['batch_size'],
-                      'target': opt['model']['target'],
+                      'depth_source': opt['model']['depth_source'],
                       'cameras_names': opt['data'].cameras_name}
     opt['train_collector'] = Namespace(**cfg_train_data)
     opt['model']['train']['lr'] = float(opt['model']['train']['lr'])
@@ -29,7 +29,7 @@ def get_validation_opt(opt):
                     'mode_fusion': opt['model']['validation']['mode_fusion'],
                     'color_map_infrared': opt['model']['validation']['color_map_infrared'],
                     'batch_size': opt['model']['validation']['buffer_size'],
-                    'target': opt['model']['target'],
+                    'depth_source': opt['model']['depth_source'],
                     'cameras_names': opt['data'].cameras_name,
                     'buffer_idx': opt['model']['validation']['buffer_idx']}
     opt['val_collector'] = Namespace(**cfg_val_data)
@@ -51,8 +51,11 @@ def get_sampler_opt(opt):
     return opt
 
 
-def get_dataset_opt(opt):
+def get_dataset_opt(opt, data=None):
     dataset = opt['data']['name']
+    if dataset == 'from_data':
+        assert data is not None
+        opt['data']['from_data'] = data
     with open(os.getcwd() + f"/options/dataset/{dataset}.yaml", "r") as file:
         dataset_opt = yaml.safe_load(file)
     opt['data'].update(dataset_opt)

@@ -110,5 +110,5 @@ def get_diml_outdoor_loader(data_dir_root, batch_size=1, **kwargs):
     dataset = DIML_Outdoor(data_dir_root)
     return DataLoader(dataset, batch_size, **kwargs)
 
-# get_diml_outdoor_loader(data_dir_root="datasets/diml/outdoor/test/HR")
-# get_diml_outdoor_loader(data_dir_root="datasets/diml/outdoor/test/LR")
+# get_diml_outdoor_loader(data_dir_root="datasets/diml/outdoor/test_0/HR")
+# get_diml_outdoor_loader(data_dir_root="datasets/diml/outdoor/test_0/LR")
