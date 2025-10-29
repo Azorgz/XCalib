@@ -146,7 +146,6 @@ class CamerasCfg:
     equalize_visible: bool = False
     equalize_infrared: bool = False
     from_file: str | Path | None = None
-    from_data: Dataset | None = None
 
 
 @dataclass

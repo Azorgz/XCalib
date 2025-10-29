@@ -2,7 +2,7 @@ import os
 from argparse import Namespace
 
 import yaml
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 
 from options import get_sampler_opt, get_dataset_opt, get_depth_options, get_loss_options, get_train_opt, \
     get_validation_opt
@@ -13,7 +13,7 @@ def get_options(*args, **kwargs) -> Namespace:
         options = yaml.safe_load(file)
 
     if args:
-        if isinstance(args[0], Dataset):
+        if isinstance(args[0], DataLoader):
             options['data']['name'] = 'from_data'
 
     ## SAMPLER OPTIONS

@@ -53,13 +53,17 @@ def get_sampler_opt(opt):
 
 def get_dataset_opt(opt, data=None):
     dataset = opt['data']['name']
-    if dataset == 'from_data':
-        assert data is not None
-        opt['data']['from_data'] = data
     with open(os.getcwd() + f"/options/dataset/{dataset}.yaml", "r") as file:
         dataset_opt = yaml.safe_load(file)
     opt['data'].update(dataset_opt)
     opt['data']['from_file'] = opt['run_parameters']['path_to_calib'] if opt['run_parameters']['mode'] == 'registration_only' else None
+    if dataset == 'from_data':
+        assert data is not None
+        assert hasattr(data.dataset, 'path_vis') and hasattr(data.dataset, 'path_ir'), "DataLoader's dataset must have 'path_vis' and 'path_ir' attributes."
+        opt['data']['root_cameras'] = [data.dataset.path_vis, data.dataset.path_ir]
+        opt['data']['cameras_name'] = ['RGB', 'IR']
+        opt['data']['stage'] = 'outdoor'
+        opt['data']['name'] = data.dataset.__class__.__name__
     opt['data'] = CamerasCfg(**opt['data'])
     return opt
 
