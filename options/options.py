@@ -11,16 +11,17 @@ from options import get_sampler_opt, get_dataset_opt, get_depth_options, get_los
 def get_options(*args, **kwargs) -> Namespace:
     with open(os.getcwd() + "/options/mainConf.yaml", "r") as file:
         options = yaml.safe_load(file)
-
-    if args:
-        if isinstance(args[0], DataLoader):
+    data = None
+    if 'data' in kwargs:
+        if isinstance(kwargs['data'], DataLoader):
             options['data']['name'] = 'from_data'
+            data = kwargs['data']
 
     ## SAMPLER OPTIONS
     options = get_sampler_opt(options)
 
     ## DATASET OPTIONS
-    options = get_dataset_opt(options, data=args[0] if args else None)
+    options = get_dataset_opt(options, data=data)
 
     ## Depth MODEL OPTIONS
     options = get_depth_options(options)

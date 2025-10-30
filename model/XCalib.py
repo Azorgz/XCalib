@@ -63,7 +63,7 @@ class XCalib(nn.Module):
         return self
 
     def forward(self, *args, batch=None, **kwargs):
-        if batch is None:
+        if batch is None and len(args) > 0:
             images = [arg for arg in args]
             indices = [i for i in range(len(images[0]))]
             modality = self.cameras.modality
@@ -76,7 +76,8 @@ class XCalib(nn.Module):
         if self.optimized:
             batch = self.compute_depths(batch)
             batch = self.wrap_frame_to_target(batch)
-            return batch.projections[self.camera_target]
+            projections = [batch.projections[i] for i in range(self.number_cameras) if i != self.camera_target]
+            return projections if len(projections) > 1 else projections[0]
         else:
             self.optimize_parameters()
             return self.forward(batch=batch)
