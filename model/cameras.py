@@ -51,11 +51,16 @@ class Cameras(Dataset, nn.Module):
         else:
             self.cameras = cameras['cameras']
             self.modality = cameras['modality']
-        self.indices = self.frame_sampler.sample(len(self.cameras[0].files),
+        if self.cameras is not None:
+            self.indices = self.frame_sampler.sample(len(self.cameras[0].files),
                                                  torch.device("cpu"),
                                                  self.cameras[0].data.fps, 0)
-        self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
-        self.path = self.cfg.root_cameras[0]
+            self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
+            self.path = self.cfg.root_cameras[0]
+        else:
+            self.indices = []
+            self.cfg.root_cameras = ''
+            self.path = ''
 
     def from_file(self, path: str | os.PathLike):
         setup = CameraSetup(from_file=path)
@@ -65,21 +70,25 @@ class Cameras(Dataset, nn.Module):
         self.modality = [cam.modality for cam in cams]
 
     def load_camera(self, *args):
-        assert len(self.cfg.cameras_name) == len(
-            self.cfg.root_cameras), "The number of camera names must be equal to the number of camera folder."
-        cams = [LearnableCamera(str(root), id=cam_id, name=cam_name) for _, root, cam_id, cam_name in
-                zip(range(self.cfg.nb_cam),
-                    self.cfg.root_cameras,
-                    self.cfg.cameras_name,
-                    self.cfg.cameras_name)]
-        self.cameras = CameraBundle(cams)
-        for cam, cam_name in zip(self.cameras, self.cfg.cameras_name):
-            if 'rgb' in cam_name.lower():
-                self.modality.append('Visible')
-            elif 'ir' in cam_name.lower():
-                self.modality.append('IR')
-            else:
-                self.modality.append(cam.modality if cam.modality == 'Visible' else 'IR')
+        if self.cfg.root_cameras is None or len(self.cfg.root_cameras) == 0:
+            self.modality = []
+            self.cameras = None
+        else:
+            assert len(self.cfg.cameras_name) == len(
+                self.cfg.root_cameras), "The number of camera names must be equal to the number of camera folder."
+            cams = [LearnableCamera(str(root), id=cam_id, name=cam_name) for _, root, cam_id, cam_name in
+                    zip(range(self.cfg.nb_cam),
+                        self.cfg.root_cameras,
+                        self.cfg.cameras_name,
+                        self.cfg.cameras_name)]
+            self.cameras = CameraBundle(cams)
+            for cam, cam_name in zip(self.cameras, self.cfg.cameras_name):
+                if 'rgb' in cam_name.lower():
+                    self.modality.append('Visible')
+                elif 'ir' in cam_name.lower():
+                    self.modality.append('IR')
+                else:
+                    self.modality.append(cam.modality if cam.modality == 'Visible' else 'IR')
 
     def __len__(self):
         return len(self.indices)
