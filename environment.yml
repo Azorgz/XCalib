@@ -12,3 +12,4 @@ dependencies:
       - git+https://github.com/Azorgz/ImagesCameras.git
       - cupy
       - timm
+      - huggingface_hub
