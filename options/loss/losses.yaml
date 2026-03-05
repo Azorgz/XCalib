@@ -8,8 +8,8 @@
 
 ### Optical Flow loss for coarse prepositioning (OFF after epochs_total / 2 epochs).
 flow:
-  weight: 2.
-  disable_after : null
+  weight: 2.5
+  disable_after : 1/2
   enable_after: 0
 
 
@@ -25,8 +25,8 @@ image:
 ### Losses for ablation study
 #      GC:
 #        weight: 1.0
-      SSIM:
-        weight: 0.50
+#      SSIM:
+#        weight: 1.0
 #      RMSE:
 #          weight: 1.0
 #      PSNR:
@@ -35,7 +35,7 @@ image:
 #          weight: 1.0
 
 
-#### Regularization term to avoid large motions drift (always ON).
+#### Regularization term to avoid large motions drift (OFF after unfreeze).
 reg:
     weight: 2.0
     disable_after: null

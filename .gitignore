@@ -2,3 +2,8 @@
 /model/backbone/Depth_anything/metric_depth/checkpoints/depth_anything_metric_depth_outdoor.pt
 /model/backbone/ml_depth_pro/checkpoints/depth_pro.pt
 /.idea/XCalib2.iml
+/outputs/test/
+/test.py
+/model/enhancer/checkpoint/enhancer.pth
+/options/dataset/FLIR_DAY_full.yaml
+/options/dataset/LYNRED_DAY_full.yaml

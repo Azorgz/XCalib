@@ -12,6 +12,8 @@ from model.backbone.Depth_anything.metric_depth.zoedepth.utils.config import get
 from model.backbone import Backbone
 from misc.utils import configure_parser
 
+ROOT_DIR = Path(__file__).parent.parent.parent
+
 
 @dataclass
 class BackboneZoeCfg:
@@ -34,11 +36,11 @@ class BackboneZoe(Backbone[BackboneZoeCfg]):
 
 
     def buildcore(self):
-        sys.path.append(os.getcwd() + '/model/backbone/Depth_anything/metric_depth')
+        sys.path.append(str(ROOT_DIR) + '/model/backbone/Depth_anything/metric_depth')
         parser = get_config('zoedepth', "infer")
         config = configure_parser(parser,
                                   None,
-                                  path_config=os.getcwd() + '/model/backbone/Depth_anything/config_Depth_anything.yml',
+                                  path_config=str(ROOT_DIR) + '/model/backbone/Depth_anything/config_Depth_anything.yml',
                                   dict_vars=None)
         config.pretrained_resource = config.path_checkpoint
         # Depth model

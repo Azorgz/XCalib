@@ -14,3 +14,12 @@ def get_backbone(
 ) -> Backbone:
     depth_model = BACKBONES[cfg.name](cfg)
     return depth_model
+
+    # if cfg.name == 'zoe':
+    #     from .backbone_depth_anything import BackboneZoe, BackboneZoeCfg as BACKBONES, cfg
+    # elif cfg.name == 'pro':
+    #     from .backbone_depth_pro import BackboneDepthPro, BackboneDepthProCfg as BACKBONES, cfg
+    # else:
+    #     raise ValueError(f"Backbone {cfg.name} is not supported. Choose among: {', '.join(list(BackboneCfg.keys()))}")
+    #
+    # depth_model = BACKBONES(cfg)

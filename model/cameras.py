@@ -44,6 +44,7 @@ class Cameras(Dataset, nn.Module):
         self.frame_sampler = frame_sampler
         self.modality = []
         self.stage = cfg.stage
+        self.freeze_one = cfg.freeze_one
         if cfg.from_file is not None:
             self.from_file(cfg.from_file)
         elif cameras is None:
@@ -57,6 +58,8 @@ class Cameras(Dataset, nn.Module):
                                                  self.cameras[0].data.fps, 0)
             self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
             self.path = self.cfg.root_cameras[0]
+            if self.freeze_one:
+                self.cameras[0].freeze()
         else:
             self.indices = []
             self.cfg.root_cameras = ''

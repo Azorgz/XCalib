@@ -141,6 +141,7 @@ class CamerasCfg:
     cameras_name: list[str] | None
     stage: Literal['indoor', 'outdoor']
     nb_cam: int = 2
+    freeze_one: bool = False
     normalize_visible: bool = False
     normalize_infrared: bool = False
     equalize_visible: bool = False

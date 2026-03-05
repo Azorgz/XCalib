@@ -1,9 +1,15 @@
 import os
 from argparse import Namespace
+from os.path import isfile
+from pathlib import Path
+
 import yaml
 from matplotlib import colormaps
 from model.backbone import BackboneCfg
 from misc.Mytypes import CamerasCfg
+
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_train_opt(opt):
@@ -43,7 +49,7 @@ def get_sampler_opt(opt):
             'name': 'random',
             'num_frames': opt['model']['train']['batch_size']}
     else:
-        with open(os.getcwd() + "/options/frame_sampler/sequential.yaml", "r") as file:
+        with open(ROOT_DIR / "options/frame_sampler/sequential.yaml", "r") as file:
             sampler_opt = yaml.safe_load(file)
         opt['frame_sampler'] = sampler_opt
         opt['frame_sampler']['num_frames'] = opt['model']['train']['batch_size']
@@ -53,10 +59,9 @@ def get_sampler_opt(opt):
 
 def get_dataset_opt(opt, data=None):
     dataset = opt['data']['name']
-    with open(os.getcwd() + f"/options/dataset/{dataset}.yaml", "r") as file:
+    with open(str(ROOT_DIR) + f"/options/dataset/{dataset}.yaml", "r") as file:
         dataset_opt = yaml.safe_load(file)
     opt['data'].update(dataset_opt)
-    opt['data']['from_file'] = opt['run_parameters']['path_to_calib'] if opt['run_parameters']['mode'] == 'registration_only' else None
     if dataset == 'from_data':
         assert data is not None
         assert hasattr(data.dataset, 'path_vis') and hasattr(data.dataset, 'path_ir'), "DataLoader's dataset must have 'path_vis' and 'path_ir' attributes."
@@ -64,13 +69,19 @@ def get_dataset_opt(opt, data=None):
         opt['data']['cameras_name'] = ['RGB', 'IR']
         opt['data']['stage'] = 'outdoor'
         opt['data']['name'] = data.dataset.__class__.__name__
+    path_to_calib = opt['run_parameters']['path_to_calib']
+    path_to_calib = path_to_calib.replace('dataset::', f'{Path(opt["data"]["root_cameras"][0]).parent}/') if opt["data"]["root_cameras"] is not None else None
+    opt['data']['from_file'] = path_to_calib if (
+                (opt['run_parameters']['mode'] == 'registration_only') and (isfile(path_to_calib) if path_to_calib is not None else False)) else None
+    opt['run_parameters']['mode'] = 'registration_only' if opt['data']['from_file'] is not None else opt['run_parameters']['mode']
+    opt['data']['freeze_one'] = opt['model']['train']['freeze_one_camera']
     opt['data'] = CamerasCfg(**opt['data'])
     return opt
 
 
 def get_depth_options(opt):
     depth_model = opt['model']['depth']
-    with open(os.getcwd() + f"/options/depth/{depth_model}.yaml", "r") as file:
+    with open(str(ROOT_DIR) + f"/options/depth/{depth_model}.yaml", "r") as file:
         depth_opt = yaml.safe_load(file)
     opt['model']['depth'] = BackboneCfg[depth_model](**depth_opt)
     return opt
@@ -79,7 +90,7 @@ def get_depth_options(opt):
 def get_loss_options(opt):
     losses = opt['model']['train']['loss']
 
-    with open(os.getcwd() + f"/options/loss/losses.yaml", "r") as file:
+    with open(str(ROOT_DIR) + f"/options/loss/losses.yaml", "r") as file:
         losses_opt = yaml.safe_load(file)
 
     for l in losses:

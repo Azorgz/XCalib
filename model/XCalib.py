@@ -1,11 +1,13 @@
 import math
 import os
 from os.path import isfile
+from pathlib import Path
 
 import numpy as np
 import torch
 from ImagesCameras import ImageTensor, CameraSetup
 from torch import nn
+from torch.nn.functional import interpolate
 from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 
@@ -20,6 +22,8 @@ from model.spatial_transformer import depth_warp
 from model.validation import ValidationModule
 from options.options import get_options
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
 
 class XCalib(nn.Module):
     _optimized: bool = False  # Whether the model has been optimized
@@ -32,8 +36,8 @@ class XCalib(nn.Module):
         self.experiment = cfg.name_experiment
         self.scheduler = None
         self.optimizer = None
-        self.path = cfg.output + '/' + cfg.name_experiment
-        check_path(self.path)
+        self.path = ROOT_DIR / cfg.output / cfg.data.name
+        self.path.mkdir(parents=True, exist_ok=True)
         self.device = select_device(cfg.model['device'])
         self.cfg = cfg
         self.output_path = cfg.output + cfg.name_experiment
@@ -41,7 +45,7 @@ class XCalib(nn.Module):
         self.validation_parameters = self.cfg.model['validation']
         #  Models
         if cfg.run_parameters['mode'] == 'registration_only':
-            assert isfile(cfg.run_parameters['path_to_calib']), \
+            assert isfile(cfg.data.from_file), \
                 "Please provide a valid path to a calibration file to run registration only"
             self._optimized = True
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
@@ -50,11 +54,14 @@ class XCalib(nn.Module):
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
         self.enhancer = get_enhancer() if cfg.run_parameters['enhance_result_quality'] else None
         # Data
-        self.number_cameras = len(self.cameras.cameras)
+        self.cfg.number_cameras = len(self.cameras.cameras) if self.cameras is not None else 0
+        cfg.train_collector.nb_cam = cfg.val_collector.nb_cam = self.cfg.number_cameras
         self.images = DataCollector(cfg.train_collector)
         self.validation = DataCollector(cfg.val_collector)
         self.camera_target = self.cfg.model['target']
         self.depth_source = self.cfg.model['depth_source']
+        if cfg.run_parameters['mode'] == 'registration_only':
+            self.cameras.freeze()
 
     def to(self, device: torch.device) -> 'XCalib':
         self.depthModel = self.depthModel.to(device)
@@ -63,11 +70,11 @@ class XCalib(nn.Module):
         return self
 
     def forward(self, *args, batch=None, **kwargs):
-        if batch is None and len(args) > 0:
-            images = [arg for arg in args]
-            indices = [i for i in range(len(images[0]))]
+        if batch is None and len(args) == len(self.cameras.cameras):
             modality = self.cameras.modality
             cameras = [cameras.name for cameras in self.cameras.cameras]
+            images = [interpolate(arg, self.cameras.cameras[i].sensor_resolution) for i, arg in enumerate(args)]
+            indices = [i for i in range(len(images[0]))]
             batch = Batch(images=images,
                           indices=indices,
                           cameras=cameras,
@@ -90,6 +97,10 @@ class XCalib(nn.Module):
 
     def load_images_by_indices(self, indices):
         return self.cameras.load_images(indices)
+
+    @property
+    def number_cameras(self):
+        return self.cfg.data.nb_cam
 
     @torch.no_grad()
     def compute_depths(self, batch: Batch):
@@ -149,12 +160,19 @@ class XCalib(nn.Module):
                 waitbar.update(self.train_parameters['batch_size'])
                 if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
                     screen, valid_image = self.validation_step(screen)
+                    self.LossModel.plot(save_path=self.output_path + '/loss/', name=f'Losses at step {optimization_step}')
         waitbar.close()
         self.cameras.freeze()
         self.optimized = True
         if self.validation_parameters['visualize_validation']:
             screen.close()
+            self.LossModel.plot(name=f'Losses at step {optimization_step}', save_path=self.output_path)
             valid_image.show(name=f'Final result', opencv=True)
+        if self.cfg.run_parameters['save_calib']:
+            self.save_cameras_rig()
+        # Clear buffers
+        self.images.clear()
+        self.validation.clear()
 
     def validation_step(self, screen):
         batch_val = self.validation.get_batch(0)
@@ -189,38 +207,6 @@ class XCalib(nn.Module):
             waitbar.update(len(batch.indices[0]))
         waitbar.close()
         self.cameras.cfg = old_setup
-
-    def train_flow_corrector(self):
-        assert self.optimized, "Please optimize the camera parameters before training the flow correction module"
-        self.cameras.freeze()
-        self.buffer_all()
-        self.define_optimizers(10e-5)
-        optimization_step = 0
-        Floss = 0.
-        self.flowCorrector.train()
-        epochs = 20
-        waitbar = tqdm(total=len(self.cameras) * epochs * self.train_parameters['batch_size'],
-                       desc=f'Training of the flow corrector epoch {0}, lr: {self.optimizer.param_groups[0]["lr"] * 100000:.3f}e-5, {Floss}')
-        for e in range(epochs):
-            for batch in self.cameras:
-                waitbar.desc = (
-                    f'Training of the flow corrector epoch {0}, lr: {self.optimizer.param_groups[0]["lr"] * 100000:.3f}e-5, Flow loss: {Floss}')
-                optimization_step += 1
-                # zero the parameter gradients
-                self.optimizer.zero_grad()
-                # compute_depths
-                batch = self.compute_depths(batch)
-                # Wrap images
-                batch = self.wrap_frame_to_target(batch, return_flow=True)
-                # Computes losses
-                Floss = self.flowCorrector.compute_loss(batch, self.camera_target)
-                Floss += self.LossModel(batch, e, self.cameras)
-                Floss.backward()
-                self.optimizer.step()
-                waitbar.update(self.train_parameters['batch_size'])
-            torch.save(self.flowCorrector.state_dict(), f'{os.getcwd()}/model/flow_corrector/checkpoint/flow_corrector.pth')
-        waitbar.close()
-        self.flowCorrector.eval()
 
     def wrap_frame_to_target(self, batch: Batch, return_flow: bool = False) -> Batch:
         proj = []

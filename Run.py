@@ -20,8 +20,6 @@ if __name__ == "__main__":
     cfg = get_options()
     if cfg.run_parameters['mode'] in ['all_in_one', 'calibration_only']:
         xcalib = fit_cams(cfg)
-        if xcalib.cfg.run_parameters['save_calib']:
-            xcalib.save_cameras_rig()
     else:
         xcalib = XCalib(cfg=cfg).to(cfg.model['device'])
     if cfg.run_parameters['mode'] in ['all_in_one', 'registration_only']:
