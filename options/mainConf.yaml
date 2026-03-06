@@ -1,4 +1,4 @@
-name_experiment: test
+name_experiment: FLIR_NIGHT
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number - 1
@@ -20,6 +20,7 @@ model:
 
   validation:
     visualize_validation: True
+    plot_loss: True
     mode_fusion: alpha_blending  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
     color_map_infrared: twilight  # inferno, plasma, magma, viridis, cividis, gray...
     step_visualize: 1 # Frequency of the screen update during the training (in steps)
@@ -37,6 +38,6 @@ data:
 run_parameters:
   mode: calibration_only  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
-  path_to_calib: ::dataset/FLIR_NIGHT.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
+  path_to_calib: outputs::/name_experiment::/dataset::.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
   enhance_result_quality: False  # Module borrowed from @PGMR
 output: outputs/

@@ -1,0 +1,30 @@
+[project]
+name = "xcalib"
+version = "2.0.0"
+description = "Official Implementation of xCalib: Cross-Domain Calibration for Image PixelWise reprojection"
+keywords = ["computer vision", "deep learning", "pytorch"]
+requires-python = ">=3.11"
+readme = "README.md"
+authors = [{name = "Aurelien Godet", email = "aurelien.godet@grenoble-inp.fr"}]
+
+dependencies = [
+    "tqdm", "jaxtyping", "cupy", "timm", "huggingface_hub",
+    "ImagesCameras @ git+https://github.com/Azorgz/ImagesCameras.git"]
+
+
+[tool.setuptools.packages.find]
+exclude = ["docs*", "test*", "examples*", "output*", "examples*"]
+namespaces = false
+
+[project.urls]
+Homepage = "https://github.com/Azorgz/XCalib.git"
+Repository = "https://github.com/Azorgz/XCalib.git"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+zip-safe = true
+license-files = ["LICENSE"]
+include-package-data = false

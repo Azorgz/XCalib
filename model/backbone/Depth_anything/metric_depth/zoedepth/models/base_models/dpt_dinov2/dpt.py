@@ -1,10 +1,14 @@
 import os
+from pathlib import Path
 
 import torch
 import torch.nn as nn
 
 from .blocks import FeatureFusionBlock, _make_scratch
 import torch.nn.functional as F
+
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
 
 
 def _make_fusion_block(features, use_bn, size = None):
@@ -139,7 +143,7 @@ class DPT_DINOv2(nn.Module):
 
         torch.manual_seed(1)
         
-        self.pretrained = torch.hub.load(os.getcwd() + '/model/backbone/Depth_anything/torchhub/facebookresearch_dinov2_main',
+        self.pretrained = torch.hub.load(str(ROOT_DIR) + '/torchhub/facebookresearch_dinov2_main',
                                          'dinov2_{:}14'.format(encoder),
                                          source='local',
                                          pretrained=False)

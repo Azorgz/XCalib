@@ -37,7 +37,8 @@ def get_validation_opt(opt):
                     'batch_size': opt['model']['validation']['buffer_size'],
                     'depth_source': opt['model']['depth_source'],
                     'cameras_names': opt['data'].cameras_name,
-                    'buffer_idx': opt['model']['validation']['buffer_idx']}
+                    'buffer_idx': opt['model']['validation']['buffer_idx'],
+                    'plot_loss': opt['model']['validation']['plot_loss']}
     opt['val_collector'] = Namespace(**cfg_val_data)
     return opt
 
@@ -49,7 +50,7 @@ def get_sampler_opt(opt):
             'name': 'random',
             'num_frames': opt['model']['train']['batch_size']}
     else:
-        with open(ROOT_DIR / "options/frame_sampler/sequential.yaml", "r") as file:
+        with open(str(ROOT_DIR) + "/options/frame_sampler/sequential.yaml", "r") as file:
             sampler_opt = yaml.safe_load(file)
         opt['frame_sampler'] = sampler_opt
         opt['frame_sampler']['num_frames'] = opt['model']['train']['batch_size']
@@ -59,10 +60,11 @@ def get_sampler_opt(opt):
 
 def get_dataset_opt(opt, data=None):
     dataset = opt['data']['name']
-    with open(str(ROOT_DIR) + f"/options/dataset/{dataset}.yaml", "r") as file:
-        dataset_opt = yaml.safe_load(file)
-    opt['data'].update(dataset_opt)
-    if dataset == 'from_data':
+    if dataset != 'from_data':
+        with open(str(ROOT_DIR) + f"/options/dataset/{dataset}.yaml", "r") as file:
+            dataset_opt = yaml.safe_load(file)
+        opt['data'].update(dataset_opt)
+    else:
         assert data is not None
         assert hasattr(data.dataset, 'path_vis') and hasattr(data.dataset, 'path_ir'), "DataLoader's dataset must have 'path_vis' and 'path_ir' attributes."
         opt['data']['root_cameras'] = [data.dataset.path_vis, data.dataset.path_ir]
@@ -70,10 +72,17 @@ def get_dataset_opt(opt, data=None):
         opt['data']['stage'] = 'outdoor'
         opt['data']['name'] = data.dataset.__class__.__name__
     path_to_calib = opt['run_parameters']['path_to_calib']
-    path_to_calib = path_to_calib.replace('dataset::', f'{Path(opt["data"]["root_cameras"][0]).parent}/') if opt["data"]["root_cameras"] is not None else None
-    opt['data']['from_file'] = path_to_calib if (
-                (opt['run_parameters']['mode'] == 'registration_only') and (isfile(path_to_calib) if path_to_calib is not None else False)) else None
-    opt['run_parameters']['mode'] = 'registration_only' if opt['data']['from_file'] is not None else opt['run_parameters']['mode']
+    path_to_calib = path_to_calib.replace('dataset::', f'{opt["data"]["name"]}')
+    path_to_calib = path_to_calib.replace('name_experiment::', f'{opt["name_experiment"]}')
+    path_to_calib = path_to_calib.replace('outputs::', f'{opt["output"]}')
+    opt['data']['from_file'] = path_to_calib if ((opt['run_parameters']['mode'] == 'registration_only')
+                                and (isfile(path_to_calib) if path_to_calib is not None else False)) else None
+    if opt['run_parameters']['mode'] == 'registration_only':
+        if opt['data']['from_file'] is None:
+            opt['run_parameters']['mode'] = 'all_in_one'
+            print('The specified path to calibration file does not exist. Switching to all_in_one mode.')
+        else:
+            print(f"Calibration file found at {opt['data']['from_file']}. Running in registration_only mode.")
     opt['data']['freeze_one'] = opt['model']['train']['freeze_one_camera']
     opt['data'] = CamerasCfg(**opt['data'])
     return opt

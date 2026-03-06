@@ -1,5 +1,6 @@
 # MIT License
 import os
+from pathlib import Path
 
 # Copyright (c) 2022 Intelligent Systems Lab Org
 
@@ -24,6 +25,9 @@ import os
 # File author: Shariq Farooq Bhat
 
 import torch
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent.parent.parent
+
 
 def load_state_dict(model, state_dict):
     """Load state_dict into model, handling DataParallel and DistributedDataParallel. Also checks for "model" key in state_dict.
@@ -86,7 +90,7 @@ def load_state_from_resource(model, resource: str):
 
     elif resource.startswith('local::'):
         # path = resource.split('local::')[1]
-        path = resource.replace('local::', f'{os.getcwd()}/')
+        path = resource.replace('local::', str(ROOT_DIR) + '/')
         return load_wts(model, path)
         
     else:

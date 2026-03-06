@@ -36,11 +36,12 @@ class XCalib(nn.Module):
         self.experiment = cfg.name_experiment
         self.scheduler = None
         self.optimizer = None
-        self.path = ROOT_DIR / cfg.output / cfg.data.name
-        self.path.mkdir(parents=True, exist_ok=True)
+        self.output_path = ROOT_DIR / cfg.output / cfg.name_experiment
+        self.output_path.mkdir(parents=True, exist_ok=True)
+        if cfg.model['validation']['plot_loss']:
+            (self.output_path / 'loss').mkdir(parents=True, exist_ok=True)
         self.device = select_device(cfg.model['device'])
         self.cfg = cfg
-        self.output_path = cfg.output + cfg.name_experiment
         self.train_parameters = self.cfg.model['train']
         self.validation_parameters = self.cfg.model['validation']
         #  Models
@@ -54,7 +55,7 @@ class XCalib(nn.Module):
         self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
         self.enhancer = get_enhancer() if cfg.run_parameters['enhance_result_quality'] else None
         # Data
-        self.cfg.number_cameras = len(self.cameras.cameras) if self.cameras is not None else 0
+        self.cfg.number_cameras = len(self.cameras.cameras) if self.cameras.cameras is not None else 0
         cfg.train_collector.nb_cam = cfg.val_collector.nb_cam = self.cfg.number_cameras
         self.images = DataCollector(cfg.train_collector)
         self.validation = DataCollector(cfg.val_collector)
@@ -160,13 +161,17 @@ class XCalib(nn.Module):
                 waitbar.update(self.train_parameters['batch_size'])
                 if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
                     screen, valid_image = self.validation_step(screen)
-                    self.LossModel.plot(save_path=self.output_path + '/loss/', name=f'Losses at step {optimization_step}')
+                    if self.cfg.model['validation']['plot_loss']:
+                        self.LossModel.plot(save_path=str(self.output_path) + '/loss/',
+                                            name=f'Losses at step {optimization_step}')
         waitbar.close()
         self.cameras.freeze()
         self.optimized = True
         if self.validation_parameters['visualize_validation']:
             screen.close()
-            self.LossModel.plot(name=f'Losses at step {optimization_step}', save_path=self.output_path)
+            if self.cfg.model['validation']['plot_loss']:
+                self.LossModel.plot(save_path=str(self.output_path) + '/loss/',
+                                    name=f'Losses at step {optimization_step}')
             valid_image.show(name=f'Final result', opencv=True)
         if self.cfg.run_parameters['save_calib']:
             self.save_cameras_rig()
@@ -246,7 +251,7 @@ class XCalib(nn.Module):
     def save_cameras_rig(self):
         cams = [cam.clone() for cam in self.cameras.cameras.list]
         rig = CameraSetup(*cams)
-        rig.save(self.path, f'{self.experiment}.yaml')
+        rig.save(self.output_path, f'{self.cfg.data.name}.yaml')
         return rig
 
     @property
