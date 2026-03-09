@@ -32,8 +32,8 @@ data:
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True
-  equalize_visible: True
-  equalize_infrared: True
+  equalize_visible: False
+  equalize_infrared: False
 
 run_parameters:
   mode: calibration_only  # all_in_one, calibration_only, registration_only

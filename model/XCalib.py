@@ -57,10 +57,11 @@ class XCalib(nn.Module):
         # Data
         self.cfg.number_cameras = len(self.cameras.cameras) if self.cameras.cameras is not None else 0
         cfg.train_collector.nb_cam = cfg.val_collector.nb_cam = self.cfg.number_cameras
-        self.images = DataCollector(cfg.train_collector)
-        self.validation = DataCollector(cfg.val_collector)
         self.camera_target = self.cfg.model['target']
         self.depth_source = self.cfg.model['depth_source']
+        cfg.train_collector.depth_source = cfg.val_collector.depth_source = self.depth_source
+        self.images = DataCollector(cfg.train_collector)
+        self.validation = DataCollector(cfg.val_collector)
         if cfg.run_parameters['mode'] == 'registration_only':
             self.cameras.freeze()
 

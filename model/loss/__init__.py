@@ -19,7 +19,7 @@ def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
     class LossModel:
         def __init__(self, metrics: list):
             self.metrics = metrics
-            self.losses = {metric.cfg.name: [None] for metric in metrics}
+            self.losses = {metric.cfg.name: [] for metric in metrics}
             self.colors = ['green', 'red', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 
         def __call__(self, batch, global_step: int, cameras):
@@ -31,19 +31,20 @@ def get_losses(cfgs: tuple[list[LossCfg]], targets: int):
                     self.losses[metric.cfg.name].append(l.detach().cpu().numpy())
                 else:
                     self.losses[metric.cfg.name].append(None)
-
             return loss_tot
 
         def __str__(self):
-            return ", ".join([f"{k}: {v[-1]:.4f}" for k, v in self.losses.items() if v[-1] is not None])
+            if any(l for l in self.losses.values()):
+                return ", ".join([f"{k}: {v[-1]:.4f}" for k, v in self.losses.items() if v[-1] is not None])
+            else:
+                return "No losses computed yet."
 
         def plot(self, name=None, save_path=None):
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots()
             for (k, v), c in zip(self.losses.items(), self.colors):
-                if len(v) > 1:
-                    v_ = np.stack([v__ for v__ in v[1:] if v__ is not None])
-                    ax.plot(v_, label=k, color=c)
+                if len(v) > 0:
+                    ax.plot(v, label=k, color=c)
             # Get all legend items
             handles, labels = ax.get_legend_handles_labels()
             plt.xlim(0, 160)
