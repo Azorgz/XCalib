@@ -113,7 +113,7 @@ def get_loss_options(opt):
                                                                         is str) else float(opt['model']['train']['unfreeze'])
         elif loss_opt['disable_after'] is not None:
             disable_after = eval(loss_opt['disable_after']) if (type(loss_opt['disable_after'])
-                                                                is str) else float(loss_opt['enable_after'])
+                                                                is str) else float(loss_opt['disable_after'])
         else:
             disable_after = None
         if disable_after is not None:

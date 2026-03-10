@@ -9,7 +9,7 @@
 ### Optical Flow loss for coarse prepositioning (OFF after epochs_total / 2 epochs).
 flow:
   weight: 2.5
-  disable_after : 1/2
+  disable_after : 0.7
   enable_after: 0
 
 
