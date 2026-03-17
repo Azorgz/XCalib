@@ -10,6 +10,7 @@ from options import get_sampler_opt, get_dataset_opt, get_depth_options, get_los
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
+
 def get_options(*args, **kwargs) -> Namespace:
     with open(str(ROOT_DIR) + "/options/mainConf.yaml", "r") as file:
         options = yaml.safe_load(file)

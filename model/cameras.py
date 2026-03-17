@@ -11,6 +11,8 @@ from model.frame_sampler import FrameSampler
 import torch
 from misc.Mytypes import CamerasCfg, Batch
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class CameraBundle(nn.Module):
 
@@ -56,7 +58,7 @@ class Cameras(Dataset, nn.Module):
             self.indices = self.frame_sampler.sample(len(self.cameras[0].files),
                                                  torch.device("cpu"),
                                                  self.cameras[0].data.fps, 0)
-            self.cfg.root_cameras = [root.replace('local::', os.getcwd()) for root in self.cfg.root_cameras]
+            self.cfg.root_cameras = [root.replace('local::', ROOT_DIR) for root in self.cfg.root_cameras]
             self.path = self.cfg.root_cameras[0]
             if self.freeze_one:
                 self.cameras[0].freeze()
@@ -73,15 +75,17 @@ class Cameras(Dataset, nn.Module):
         self.modality = [cam.modality for cam in cams]
 
     def load_camera(self, *args):
-        if self.cfg.root_cameras is None or len(self.cfg.root_cameras) == 0:
+        if (self.cfg.root_cameras is None or len(self.cfg.root_cameras) == 0) and (self.cfg.files is None or len(self.cfg.files) == 0):
             self.modality = []
             self.cameras = None
         else:
-            assert len(self.cfg.cameras_name) == len(
-                self.cfg.root_cameras), "The number of camera names must be equal to the number of camera folder."
-            cams = [LearnableCamera(str(root), id=cam_id, name=cam_name) for _, root, cam_id, cam_name in
+            assert (len(self.cfg.cameras_name) == len(
+                self.cfg.root_cameras) or len(self.cfg.cameras_name) == len(
+                self.cfg.files)), "The number of camera names must be equal to the number of camera folder."
+            cams = [LearnableCamera(str(root), files=files, id=cam_id, name=cam_name) for _, root, files, cam_id, cam_name in
                     zip(range(self.cfg.nb_cam),
                         self.cfg.root_cameras,
+                        self.cfg.files,
                         self.cfg.cameras_name,
                         self.cfg.cameras_name)]
             self.cameras = CameraBundle(cams)

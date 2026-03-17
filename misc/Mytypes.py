@@ -147,6 +147,7 @@ class CamerasCfg:
     equalize_visible: bool = False
     equalize_infrared: bool = False
     from_file: str | Path | None = None
+    files: list[list[Path | str]] | None = None
 
 
 @dataclass

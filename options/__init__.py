@@ -68,6 +68,7 @@ def get_dataset_opt(opt, data=None):
         assert data is not None
         assert hasattr(data.dataset, 'path_vis') and hasattr(data.dataset, 'path_ir'), "DataLoader's dataset must have 'path_vis' and 'path_ir' attributes."
         opt['data']['root_cameras'] = [data.dataset.path_vis, data.dataset.path_ir]
+        opt['data']['files'] = [data.dataset.image_vis, data.dataset.image_ir]
         opt['data']['cameras_name'] = ['RGB', 'IR']
         opt['data']['stage'] = 'outdoor'
         opt['data']['name'] = data.dataset.__class__.__name__
