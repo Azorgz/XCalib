@@ -4,10 +4,10 @@ model:
   target: 0 # idx of the target camera, must be <= Cameras_number - 1
   depth_source: 0 # idx of the depth source camera, must be <= Cameras_number - 1
   depth: zoe  #
-  buffer_size: 32  # number of frames used to calibrate
+  buffer_size: 12  # number of frames used to calibrate
   device: 0  # GPU id, -1 for CPU
   train:
-    batch_size: 4 # number of samples per batch for the second stage
+    batch_size: 1 # number of samples per batch for the second stage
     freeze_one_camera: False  # if True, freeze the parameters of one of the cameras during training and calibrate the other relatively to this one
     shuffle: True
     frame_sampler: random  # sequential, random
@@ -24,11 +24,11 @@ model:
     mode_fusion: alpha_blending  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
     color_map_infrared: twilight  # inferno, plasma, magma, viridis, cividis, gray...
     step_visualize: 1 # Frequency of the screen update during the training (in steps)
-    buffer_size: 4
-    buffer_idx: [0, 29, 45, 50]  # LIST of idx of the images used for validation or null. Overrides buffer_size
+    buffer_size: 1
+    buffer_idx: null  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: FLIR_NIGHT  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
+  name: MyDataset  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True

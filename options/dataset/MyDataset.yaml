@@ -1,12 +1,19 @@
 root_cameras:
   # VIS root folders
+
   # /here/put/your/visible/folder
+  - /home/godeta/Bureau/ultris/fixed_target_coupled/rpi_hq/preview/
   # IR root folders
   # /here/put/your/infrared/folder
+  - /home/godeta/Bureau/ultris/fixed_target_coupled/ultris_sr5/preview/
   # Number of files in each directory must match
 
 cameras_name:
-  - RGB
-  - IR
+  - rpi_hq
+  - ultris_sr5
 
-stage: outdoor
+files:
+  - null
+  - null
+
+stage: indoor

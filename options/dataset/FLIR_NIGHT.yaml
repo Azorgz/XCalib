@@ -6,4 +6,8 @@ cameras_name:
   - RGB
   - IR
 
+files:
+  - null
+  - null
+
 stage: outdoor
