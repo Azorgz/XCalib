@@ -3,7 +3,9 @@
 /model/backbone/ml_depth_pro/checkpoints/depth_pro.pt
 /.idea/XCalib2.iml
 /outputs/test/
+/outputs/*/loss/
 /test.py
 /model/enhancer/checkpoint/enhancer.pth
 /options/dataset/FLIR_DAY_full.yaml
 /options/dataset/LYNRED_DAY_full.yaml
+/.idea/
