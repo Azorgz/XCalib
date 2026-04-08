@@ -29,7 +29,7 @@ if __name__ == "__main__":
     dataset_subdir = "ultris-rpi-sequence-highres/fixed_target_coupled"
     cameras = ["ultris_sr5", "rpi_hq"]  # [Reference, Source]
     crop_name = "*"
-    sf_name = "sf4"
+    sf_name = "*"
     padding_mode = "border"
 
     camera_dirs = [hcalib_data / dataset_subdir / cam for cam in cameras]
