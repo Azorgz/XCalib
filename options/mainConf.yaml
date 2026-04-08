@@ -36,7 +36,7 @@ data:
   equalize_infrared: False
 
 run_parameters:
-  mode: all_in_one  # all_in_one, calibration_only, registration_only
+  mode: registration_only  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
   path_to_calib: "to_be_filled" # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
   enhance_result_quality: False  # Module borrowed from @PGMR
