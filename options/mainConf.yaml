@@ -1,4 +1,4 @@
-name_experiment: ULTRIS_RPI_FIXED_TARGET_COUPLED
+name_experiment: "to_be_filled"
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number - 1
@@ -19,7 +19,7 @@ model:
     lr_decay: 0.98  # multiplicative factor for lr decay every step
 
   validation:
-    visualize_validation: True
+    visualize_validation: False
     plot_loss: True
     mode_fusion: alpha_blending  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
     color_map_infrared: twilight  # inferno, plasma, magma, viridis, cividis, gray...
@@ -36,8 +36,8 @@ data:
   equalize_infrared: False
 
 run_parameters:
-  mode: calibration_only  # all_in_one, calibration_only, registration_only
+  mode: all_in_one  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
-  path_to_calib: outputs::/name_experiment::/dataset::.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
+  path_to_calib: "to_be_filled" # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
   enhance_result_quality: False  # Module borrowed from @PGMR
 output: outputs/

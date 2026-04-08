@@ -190,14 +190,14 @@ class XCalib(nn.Module):
             screen.update(img)
         return screen, img
 
-    def wrap_all(self):
+    def wrap_all(self, padding_mode: str = "zeros"):
         old_setup = self.cameras.cfg
         self.cameras.cfg.normalize_visible = self.cameras.cfg.equalize_visible = False
         self.cameras.cfg.normalize_infrared = self.cameras.cfg.equalize_infrared = False
         waitbar = tqdm(total=self.cameras.total_frames, desc='Wrapping all frames to target camera')
         for batch in self.cameras:
             batch = self.compute_depths(batch)
-            batch = self.wrap_frame_to_target(batch)
+            batch = self.wrap_frame_to_target(batch, padding_mode=padding_mode)
             for i in range(self.number_cameras):
                 if i != self.camera_target:
                     projections = batch.projections[i].split(1, 0)
@@ -209,12 +209,14 @@ class XCalib(nn.Module):
                             p = ImageTensor(p).GRAY()
                         else:
                             p = ImageTensor(p)
-                        p.save(self.output_path, name=name, depth=8)
+                        path = self.output_path / "warped"
+                        path.mkdir(parents=True, exist_ok=True)
+                        p.save(path, name=name, depth=8)
             waitbar.update(len(batch.indices[0]))
         waitbar.close()
         self.cameras.cfg = old_setup
 
-    def wrap_frame_to_target(self, batch: Batch, return_flow: bool = False) -> Batch:
+    def wrap_frame_to_target(self, batch: Batch, padding_mode: str = "zeros", return_flow: bool = False) -> Batch:
         proj = []
         flows = []
         for i, image in enumerate(batch.images):
@@ -224,7 +226,8 @@ class XCalib(nn.Module):
                 continue
             image_proj = depth_warp(batch, self.cameras.cameras[self.camera_target],
                                     self.cameras.cameras[i], from_=i, to_=self.camera_target,
-                                    return_flow=return_flow)
+                                    return_flow=return_flow,
+                                    padding_mode=padding_mode)
             if not return_flow:
                 proj.append(image_proj)
             else:
@@ -252,7 +255,8 @@ class XCalib(nn.Module):
     def save_cameras_rig(self):
         cams = [cam.clone() for cam in self.cameras.cameras.list]
         rig = CameraSetup(*cams)
-        rig.save(self.output_path, f'{self.cfg.data.name}.yaml')
+        # rig.save(self.output_path, f'{self.cfg.data.name}.yaml')
+        rig.save(self.output_path, f'parameters.yaml')
         return rig
 
     @property

@@ -13,11 +13,12 @@ from model.inverse_flow import max_method
 
 
 def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0,
-               flowCorrector: nn.Module = None, return_flow: bool = False) -> Tensor:
+               flowCorrector: nn.Module = None, return_flow: bool = False,
+               padding_mode: str = "zeros") -> Tensor:
     intrinsics = torch.cat([camera_target.intrinsics, camera_src.intrinsics], dim=0)
     dst_trans_src: Tensor = compose_transformations(inverse_transformation(camera_target.extrinsics),
                                                     camera_src.extrinsics)
-    return projection_frame_to_frame(batch, dst_trans_src, intrinsics, from_=from_, to_=to_, return_flow=return_flow)
+    return projection_frame_to_frame(batch, dst_trans_src, intrinsics, from_=from_, to_=to_, padding_mode=padding_mode, return_flow=return_flow)
 
 
 def depth_to_3d(depths: Float[Tensor, "*batch h w"],
@@ -58,7 +59,8 @@ def projection_frame_to_frame(batch: Batch,
                               relative_poses: Float[Tensor, "n_pose 4 4"],
                               intrinsics: Float[Tensor, "batch n_scale 3 3"],
                               from_: int = 1, to_: int = 0,
-                              return_flow: bool = False) -> Tensor | tuple:
+                              return_flow: bool = False,
+                              padding_mode: str = "zeros") -> Tensor | tuple:
     b, c, h, w = batch.images[to_].shape
     #  extract images from batch
     images = batch.images[from_]
@@ -91,7 +93,7 @@ def projection_frame_to_frame(batch: Batch,
         sampling_grid: Tensor = normalize_pixel_coordinates(points_2d_tgt_trans, *src_shape).to(depths.dtype)  # BxHxWx2
         sampling_grid = gaussian_blur(max_pool(sampling_grid.permute(0, 3, 1, 2)), (5, 5), (1.6, 1.6)).permute(0, 2, 3, 1)
         # sample the source image at the projected 2d points
-        images_reg = F.grid_sample(images, sampling_grid, align_corners=True)
+        images_reg = F.grid_sample(images, sampling_grid, padding_mode=padding_mode, align_corners=True)
     else:
         # convert depth to 3d points
         points_3d_src: Tensor = depth_to_3d(depths, cam_src)[:, 0]  # Bx3xHxW
@@ -113,7 +115,7 @@ def projection_frame_to_frame(batch: Batch,
         # sampling_grid: Tensor = F.interpolate(inverse_flow.permute(0, 3, 1, 2), size=tgt_shape)  # BxH'xW'x2
         # sample the source image at the projected 2d points
         # images_reg = F.grid_sample(images, sampling_grid.permute(0, 2, 3, 1), align_corners=True)
-        images_reg = F.grid_sample(images, F.interpolate(sampling_grid.permute(0, 3, 1, 2), tgt_shape).permute(0, 2, 3, 1) , align_corners=True)
+        images_reg = F.grid_sample(images, F.interpolate(sampling_grid.permute(0, 3, 1, 2), tgt_shape).permute(0, 2, 3, 1) , padding_mode=padding_mode, align_corners=True)
     if not return_flow:
         return images_reg
     else:

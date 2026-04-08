@@ -14,6 +14,16 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 def get_options(*args, **kwargs) -> Namespace:
     with open(str(ROOT_DIR) + "/options/mainConf.yaml", "r") as file:
         options = yaml.safe_load(file)
+
+    if "name_experiment" in kwargs:
+        options["name_experiment"] = kwargs["name_experiment"]
+
+    if "output" in kwargs:
+        options["output"] = kwargs["output"]
+
+    if "path_to_calib" in kwargs:
+        options["run_parameters"]["path_to_calib"] = kwargs["path_to_calib"]
+
     data = None
     if 'data' in kwargs:
         if isinstance(kwargs['data'], DataLoader):
@@ -25,7 +35,7 @@ def get_options(*args, **kwargs) -> Namespace:
     options = get_sampler_opt(options)
 
     ## DATASET OPTIONS
-    options = get_dataset_opt(options, data=data)
+    options = get_dataset_opt(options, data=data, **kwargs)
 
     ## Depth MODEL OPTIONS
     options = get_depth_options(options)

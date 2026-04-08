@@ -58,11 +58,13 @@ def get_sampler_opt(opt):
     return opt
 
 
-def get_dataset_opt(opt, data=None):
+def get_dataset_opt(opt, data=None, **kwargs):
     dataset = opt['data']['name']
     if dataset != 'from_data':
         with open(str(ROOT_DIR) + f"/options/dataset/{dataset}.yaml", "r") as file:
             dataset_opt = yaml.safe_load(file)
+        if "root_cameras" in kwargs:
+            dataset_opt["root_cameras"] = kwargs["root_cameras"]
         opt['data'].update(dataset_opt)
     else:
         assert data is not None
