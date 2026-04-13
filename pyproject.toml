@@ -7,12 +7,14 @@ requires-python = ">=3.11"
 readme = "README.md"
 authors = [{name = "Aurelien Godet", email = "aurelien.godet@grenoble-inp.fr"}]
 
-dependencies = [
-    "tqdm", "jaxtyping", "cupy", "timm", "huggingface_hub",
-    "ImagesCameras @ git+https://github.com/Azorgz/ImagesCameras.git"]
+#dependencies = [
+#    "tqdm", "jaxtyping", "cupy", "timm", "huggingface_hub",
+#    "ImagesCameras @ git+https://github.com/Azorgz/ImagesCameras.git"]
 
 
 [tool.setuptools.packages.find]
+where = ["."]
+include = ["model*", "misc*", "options*"]
 exclude = ["docs*", "test*", "examples*", "output*", "examples*"]
 namespaces = false
 
