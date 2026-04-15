@@ -6,8 +6,8 @@ root_cameras:
   # Number of files in each directory must match
 
 cameras_name:
-  - ultris_sr5
-  - rpi_hq
+  - "to_be_filled"
+  - "to_be_filled"
 
 files:
   - null

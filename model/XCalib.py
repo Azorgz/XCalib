@@ -256,7 +256,7 @@ class XCalib(nn.Module):
         cams = [cam.clone() for cam in self.cameras.cameras.list]
         rig = CameraSetup(*cams)
         # rig.save(self.output_path, f'{self.cfg.data.name}.yaml')
-        rig.save(self.output_path, f'parameters.yaml')
+        rig.save(self.output_path, f'calibration.yaml')
         return rig
 
     @property

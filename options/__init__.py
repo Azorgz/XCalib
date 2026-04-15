@@ -65,6 +65,8 @@ def get_dataset_opt(opt, data=None, **kwargs):
             dataset_opt = yaml.safe_load(file)
         if "root_cameras" in kwargs:
             dataset_opt["root_cameras"] = kwargs["root_cameras"]
+        if "root_cameras" in kwargs:
+            dataset_opt["cameras_name"] = kwargs["cameras_name"]
         opt['data'].update(dataset_opt)
     else:
         assert data is not None
@@ -78,6 +80,7 @@ def get_dataset_opt(opt, data=None, **kwargs):
     path_to_calib = path_to_calib.replace('dataset::', f'{opt["data"]["name"]}')
     path_to_calib = path_to_calib.replace('name_experiment::', f'{opt["name_experiment"]}')
     path_to_calib = path_to_calib.replace('outputs::', f'{opt["output"]}')
+    path_to_calib = f"{ROOT_DIR / path_to_calib}"
     opt['data']['from_file'] = path_to_calib if ((opt['run_parameters']['mode'] == 'registration_only')
                                 and (isfile(path_to_calib) if path_to_calib is not None else False)) else None
     if opt['run_parameters']['mode'] == 'registration_only':

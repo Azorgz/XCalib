@@ -1,16 +1,13 @@
 root_cameras:
-  # VIS root folders
-
-  # /here/put/your/visible/folder
-  - /home/manip/mira/XCalib/HyperCalib/data/ultris-rpi-sequence-highres/fixed_target_coupled/rpi_hq/preview/
-  # IR root folders
-  # /here/put/your/infrared/folder
-  - /home/manip/mira/XCalib/HyperCalib/data/ultris-rpi-sequence-highres/fixed_target_coupled/ultris_sr5/preview/
+  # Reference root folders
+  - "to_be_filled"
+  # Source root folders
+  - "to_be_filled"
   # Number of files in each directory must match
 
 cameras_name:
-  - rpi_hq
-  - ultris_sr5
+  - ref
+  - src
 
 files:
   - null
