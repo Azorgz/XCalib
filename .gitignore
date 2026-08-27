@@ -7,3 +7,4 @@
 /options/dataset/FLIR_DAY_full.yaml
 /options/dataset/LYNRED_DAY_full.yaml
 /tests/
+/model/backbone/Depth_Anything_V2/metric_depth/checkpoints/
