@@ -70,7 +70,9 @@ class Cameras(Dataset, nn.Module):
     def from_file(self, path: str | os.PathLike):
         setup = CameraSetup(from_file=path)
         from_setup = [(cam.path, cam.intrinsics[0], cam.extrinsics[0, :, :], cam.id, cam.name) for i, cam in enumerate(setup.cameras.values())]
-        cams = [LearnableCamera(v[0], intrinsics=v[1], extrinsics=v[2], id=v[3], name=v[4]) for v in from_setup]
+        cams = [LearnableCamera(v[0], intrinsics=v[1], extrinsics=v[2], id=v[3], name=v[4],
+                                translation_order=self.cfg.translation_order,
+                                    focal_fct_fov=self.cfg.focal_fct_fov) for v in from_setup]
         self.cameras = CameraBundle(cams)
         self.modality = [cam.modality for cam in cams]
 
@@ -79,10 +81,14 @@ class Cameras(Dataset, nn.Module):
             self.modality = []
             self.cameras = None
         else:
+            if self.cfg.files is None:
+                self.cfg.files = [None] * len(self.cfg.root_cameras)
             assert (len(self.cfg.cameras_name) == len(
                 self.cfg.root_cameras) or len(self.cfg.cameras_name) == len(
                 self.cfg.files)), "The number of camera names must be equal to the number of camera folder."
-            cams = [LearnableCamera(str(root), files=files, id=cam_id, name=cam_name) for _, root, files, cam_id, cam_name in
+            cams = [LearnableCamera(str(root), files=files, id=cam_id, name=cam_name,
+                                    translation_order=self.cfg.translation_order,
+                                    focal_fct_fov=self.cfg.focal_fct_fov) for _, root, files, cam_id, cam_name in
                     zip(range(self.cfg.nb_cam),
                         self.cfg.root_cameras,
                         self.cfg.files,
@@ -153,8 +159,6 @@ class Cameras(Dataset, nn.Module):
                 "modality": modality}
 
     def __getitem__(self, idx: int):
-        # while idx >= len(self):
-        #     idx = idx - len(self)
         indices = self.indices[idx].numpy().tolist()
         items = [default_collate([self.read_image(cam, index) for index in indices]) for cam in self.cameras]
         images = [item['image'][:, 0] for item in items]

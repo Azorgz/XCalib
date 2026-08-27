@@ -1,8 +1,10 @@
 root_cameras:
   # VIS root folders
-  # /here/put/your/visible/folder
+  # - /here/put/your/visible/folder
+  - /media/godeta/T5 EVO/Datasets/CVC-14/Night/Visible/Train/FramesPos/
   # IR root folders
-  # /here/put/your/infrared/folder
+  - /media/godeta/T5 EVO/Datasets/CVC-14/Night/FIR/Train/FramesPos/
+  # - /here/put/your/infrared/folder
   # Number of files in each directory must match
 
 cameras_name:

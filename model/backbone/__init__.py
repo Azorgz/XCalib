@@ -1,12 +1,18 @@
 from .backbone import Backbone
-from .backbone_depth_anything import BackboneZoe, BackboneZoeCfg
+from .backbone_depth_anything_v2 import BackboneDepthAnything, BackboneDepthAnythingCfg
+from .backbone_zoedepth import BackboneZoe, BackboneZoeCfg
 from .backbone_depth_pro import BackboneDepthPro, BackboneDepthProCfg
+from .backbone_yolo import BackboneYolo, BackboneYoloCfg
 
 BACKBONES = {"zoe": BackboneZoe,
-             'pro': BackboneDepthPro}
+             'pro': BackboneDepthPro,
+             'yolo': BackboneYolo,
+             'depth_anything': BackboneDepthAnything}
 
 BackboneCfg = {"zoe": BackboneZoeCfg,
-               'pro': BackboneDepthProCfg}
+               'pro': BackboneDepthProCfg,
+               'yolo': BackboneYoloCfg,
+               'depth_anything': BackboneDepthAnythingCfg}
 
 
 def get_backbone(
@@ -14,12 +20,3 @@ def get_backbone(
 ) -> Backbone:
     depth_model = BACKBONES[cfg.name](cfg)
     return depth_model
-
-    # if cfg.name == 'zoe':
-    #     from .backbone_depth_anything import BackboneZoe, BackboneZoeCfg as BACKBONES, cfg
-    # elif cfg.name == 'pro':
-    #     from .backbone_depth_pro import BackboneDepthPro, BackboneDepthProCfg as BACKBONES, cfg
-    # else:
-    #     raise ValueError(f"Backbone {cfg.name} is not supported. Choose among: {', '.join(list(BackboneCfg.keys()))}")
-    #
-    # depth_model = BACKBONES(cfg)

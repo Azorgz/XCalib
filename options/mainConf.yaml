@@ -1,43 +1,48 @@
-name_experiment: FLIR_NIGHT
+name_experiment: CVC14
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number - 1
   depth_source: 0 # idx of the depth source camera, must be <= Cameras_number - 1
-  depth: zoe  #
+  depth: depth_anything  # zoe, pro, yolo, depth_anything
   buffer_size: 32  # number of frames used to calibrate
   device: 0  # GPU id, -1 for CPU
+  translation_order: 1  # order of the translation polynomial (0, 1, 2, ...)
+  focal_fct_fov: True  # True if the focal must be modeled as a factor multiplicative of the horizontal fov (f = 1 -> HFoV=45°)
   train:
-    batch_size: 4 # number of samples per batch for the second stage
+    batch_size: 4  # number of samples per batch for the second stage
+    update_every_step: True  # if True, update the parameters every step, else every batch
     freeze_one_camera: False  # if True, freeze the parameters of one of the cameras during training and calibrate the other relatively to this one
     shuffle: True
     frame_sampler: random  # sequential, random
-    loss: [flow, image, reg]  # flow for coarse prepositioning, image for photometric fine-tuning
+    loss: [flow, image, reg]  #,reg flow for coarse prepositioning, image for photometric fine-tuning
     epochs: 15
-    unfreeze: 0.75  # epoch to unfreeze the whole parameters
+    unfreeze: 0.5  # epoch to unfreeze the whole parameters
     lr: 5e-3  # initial learning rate
     lr_after_unfreeze: 0.5 # multiplicative factor for lr after unfreeze
     lr_decay: 0.98  # multiplicative factor for lr decay every step
 
   validation:
-    visualize_validation: True
+    visualize_validation: True  # override 'plot_loss and 'step_visualize' if False
     plot_loss: True
+    save_loss: True
     mode_fusion: alpha_blending  # alpha_blending, chessboard, cross, crossfused, ldiag, rdiag, vstrip, hstrip
     color_map_infrared: twilight  # inferno, plasma, magma, viridis, cividis, gray...
     step_visualize: 1 # Frequency of the screen update during the training (in steps)
     buffer_size: 4
-    buffer_idx: [0, 29, 45, 50]  # LIST of idx of the images used for validation or null. Overrides buffer_size
+    buffer_idx: #[0, 29, 45, 50]  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: FLIR_NIGHT  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
+  name: MyDataset  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True
   equalize_visible: False
   equalize_infrared: False
 
+
 run_parameters:
   mode: calibration_only  # all_in_one, calibration_only, registration_only
   save_calib: True # If True, save the calibration results in a .YAML file. Overwritten if mode is calibration_only
   path_to_calib: outputs::/name_experiment::/dataset::.yaml # If not null, path to a .YAML file containing calibration results. Required if mode is registration_only, ignored in mode all_in_one and calibration_only
-  enhance_result_quality: False  # Module borrowed from @PGMR
+  enhance_result_quality: True  # Module borrowed from @PGMR
 output: outputs/

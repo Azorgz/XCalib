@@ -3,17 +3,17 @@ import torch
 import torch.nn.functional as F
 from jaxtyping import Float
 from kornia import create_meshgrid
+from kornia.filters import median_blur
 from kornia.geometry import transform_points, normalize_pixel_coordinates, compose_transformations, \
     inverse_transformation, depth_to_3d_v2, convert_points_from_homogeneous
 from torch import Tensor, nn
 from torch.nn import MaxPool2d
 from torchvision.transforms.functional import gaussian_blur
 from misc.Mytypes import Batch
-from model.inverse_flow import max_method
+from model.inverse_flow import forward_warp
 
 
-def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0,
-               flowCorrector: nn.Module = None, return_flow: bool = False) -> Tensor:
+def depth_warp(batch: Batch, camera_target, camera_src, from_=1, to_=0, return_flow: bool = False) -> Tensor:
     intrinsics = torch.cat([camera_target.intrinsics, camera_src.intrinsics], dim=0)
     dst_trans_src: Tensor = compose_transformations(inverse_transformation(camera_target.extrinsics),
                                                     camera_src.extrinsics)
@@ -53,7 +53,6 @@ def project_points(point_3d: torch.Tensor, camera_matrix: torch.Tensor) -> torch
 
     return torch.stack([u_coord, v_coord], dim=-1)
 
-
 def projection_frame_to_frame(batch: Batch,
                               relative_poses: Float[Tensor, "n_pose 4 4"],
                               intrinsics: Float[Tensor, "batch n_scale 3 3"],
@@ -89,7 +88,7 @@ def projection_frame_to_frame(batch: Batch,
             [project_points(points_3d_tgt_trans[i], cam_src) for i in range(b)])  # BxHxWx2
         # normalize the 2d points to [-1, 1]
         sampling_grid: Tensor = normalize_pixel_coordinates(points_2d_tgt_trans, *src_shape).to(depths.dtype)  # BxHxWx2
-        sampling_grid = gaussian_blur(max_pool(sampling_grid.permute(0, 3, 1, 2)), (5, 5), (1.6, 1.6)).permute(0, 2, 3, 1)
+        sampling_grid = gaussian_blur(max_pool(sampling_grid.permute(0, 3, 1, 2)), (3, 3), (1.6, 1.6)).permute(0, 2, 3, 1)
         # sample the source image at the projected 2d points
         images_reg = F.grid_sample(images, sampling_grid, align_corners=True)
     else:
@@ -106,14 +105,17 @@ def projection_frame_to_frame(batch: Batch,
         sampling_grid = points_2d_src_trans.to(depths.dtype)  # BxHxWx2
         grid_n = create_meshgrid(*src_shape, device=device, dtype=images.dtype, normalized_coordinates=True).repeat(b, 1, 1, 1)  # 1xHxWx2
         grid = torch.stack([(grid_n[..., 0] + 1) * (tgt_shape[1] / 2), (grid_n[..., 1] + 1) * (tgt_shape[0] / 2)], dim=-1)  # BxHxWx2
-        inverse_flow, bkw_mask = max_method((grid - sampling_grid).permute(0, 3, 1, 2))
-        sampling_grid = normalize_pixel_coordinates(grid - inverse_flow.permute(0, 2, 3, 1), *tgt_shape)  # BxHxWx2
+        forward_flow = (grid - sampling_grid).permute(0, 3, 1, 2)
+        images_reg = forward_warp(images, forward_flow, target_shape=tgt_shape)
+        # inverse_flow, bkw_mask = average_method(forward_flow)
+        # inverse_flow = inverse_flow * bkw_mask[:, None] + (1-bkw_mask[:, None]) * median_blur(inverse_flow, kernel_size=(7, 7)) # Bx2xHxW
+        # sampling_grid = normalize_pixel_coordinates(grid - inverse_flow.permute(0, 2, 3, 1), *tgt_shape)  # BxHxWx2
 
         # flow = 2 * grid - sampling_grid  # Bx1xHxWx2
         # sampling_grid: Tensor = F.interpolate(inverse_flow.permute(0, 3, 1, 2), size=tgt_shape)  # BxH'xW'x2
         # sample the source image at the projected 2d points
         # images_reg = F.grid_sample(images, sampling_grid.permute(0, 2, 3, 1), align_corners=True)
-        images_reg = F.grid_sample(images, F.interpolate(sampling_grid.permute(0, 3, 1, 2), tgt_shape).permute(0, 2, 3, 1) , align_corners=True)
+        # images_reg = F.grid_sample(images, F.interpolate(sampling_grid.permute(0, 3, 1, 2), tgt_shape).permute(0, 2, 3, 1) , align_corners=True)
     if not return_flow:
         return images_reg
     else:

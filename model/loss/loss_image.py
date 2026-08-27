@@ -1,16 +1,14 @@
 from dataclasses import dataclass
 from typing import Literal
 
-import torch
-from ImagesCameras import ImageTensor
 from ImagesCameras.Metrics import NEC, SSIM, MSE, RMSE, NCC, PSNR, GradientCorrelation
 from jaxtyping import Float
 from kornia import create_meshgrid
 from torch import Tensor
-from torch_similarity.modules import GradientCorrelationLoss2d
 
 from misc.Mytypes import Batch
 from .loss import Loss, LossCfgCommon
+
 
 
 @dataclass
@@ -47,16 +45,17 @@ class LossImage(Loss[LossImageCfg]):
     def compute_loss(self, target: Tensor, reg: Tensor):
         device = target.device
         loss_tot = 0.
+        mask = reg * target > 0
         for weight, loss in zip(self.weights, self.losses):
             if weight > 0:
                 metric = loss(device=device)
                 xy = create_meshgrid(*target.shape[-2:], device=device)
                 weights = (xy[:, :, :, 0] ** 2 + xy[:, :, :, 1] ** 2 + 1) / 2
                 if isinstance(metric, NEC):
-                    loss, coeff = metric(target, reg, mask=reg * target > 0, return_coeff=True, weights=weights)
+                    loss, coeff = metric(target, reg, mask=mask, return_coeff=True, weights=weights)
                     coeff = coeff / coeff.mean()
                 else:
-                    loss = metric(target, reg, mask=reg * target > 0, weights=weights)
+                    loss = metric(target, reg, mask=mask, weights=weights)
                     coeff = 1.
                 if metric.higher_is_better:
                     if metric.range_max == 1:

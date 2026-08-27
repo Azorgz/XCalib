@@ -1,6 +1,6 @@
 root_cameras:
   - examples/LYNRED_DAY/vis
-  - examples/LYNRED_DAY/ir
+  - examples/LYNRED_DAY/ir_2
 
 cameras_name:
   - RGB

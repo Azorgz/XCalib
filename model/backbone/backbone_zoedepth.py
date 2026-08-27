@@ -7,8 +7,8 @@ from typing import Literal
 from torch import nn, Tensor
 from torch.nn.functional import interpolate
 
-from model.backbone.Depth_anything.metric_depth.zoedepth.models.builder import build_model
-from model.backbone.Depth_anything.metric_depth.zoedepth.utils.config import get_config
+from model.backbone.ZoeDepth.metric_depth.zoedepth.models.builder import build_model
+from model.backbone.ZoeDepth.metric_depth.zoedepth.utils.config import get_config
 from model.backbone import Backbone
 from misc.utils import configure_parser
 

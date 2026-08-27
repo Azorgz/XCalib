@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 import numpy as np
-import torch
 from jaxtyping import Float
 from torch import Tensor, nn
 

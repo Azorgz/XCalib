@@ -1,5 +1,4 @@
 import math
-import os
 from os.path import isfile
 from pathlib import Path
 
@@ -7,8 +6,7 @@ import numpy as np
 import torch
 from ImagesCameras import ImageTensor, CameraSetup
 from torch import nn
-from torch.nn.functional import interpolate
-from torch.optim.lr_scheduler import ExponentialLR
+from torch.nn.functional import interpolate, pad
 from tqdm import tqdm
 
 from model.backbone import get_backbone
@@ -16,8 +14,9 @@ from model.enhancer import get_enhancer
 from model.frame_sampler import get_frame_sampler
 from model.loss import get_losses
 from misc.Mytypes import Batch
-from misc.utils import check_path, select_device
+from misc.utils import select_device
 from model.cameras import Cameras
+from model.scale import get_detector
 from model.spatial_transformer import depth_warp
 from model.validation import ValidationModule
 from options.options import get_options
@@ -49,10 +48,12 @@ class XCalib(nn.Module):
             assert isfile(cfg.data.from_file), \
                 "Please provide a valid path to a calibration file to run registration only"
             self._optimized = True
+        cfg.data.translation_order = cfg.model['translation_order']
+        cfg.data.focal_fct_fov = cfg.model['focal_fct_fov']
         self.cameras = Cameras(cfg.data, get_frame_sampler(cfg.frame_sampler))
         self.validation_module = ValidationModule(cfg.val_collector)
         self.depthModel = get_backbone(cfg.model['depth'])
-        self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
+        self.objectModel = get_detector() if 'scale' in [l.name for l in self.train_parameters['loss']] else None
         self.enhancer = get_enhancer() if cfg.run_parameters['enhance_result_quality'] else None
         # Data
         self.cfg.number_cameras = len(self.cameras.cameras) if self.cameras.cameras is not None else 0
@@ -62,6 +63,8 @@ class XCalib(nn.Module):
         cfg.train_collector.depth_source = cfg.val_collector.depth_source = self.depth_source
         self.images = DataCollector(cfg.train_collector)
         self.validation = DataCollector(cfg.val_collector)
+        self.LossModel = get_losses(self.train_parameters['loss'], self.cfg.model['target'])
+        self.unfrozen = False
         if cfg.run_parameters['mode'] == 'registration_only':
             self.cameras.freeze()
 
@@ -111,22 +114,76 @@ class XCalib(nn.Module):
         batch.depths = [depths if i == self.depth_source else None for i in range(self.number_cameras)]
         return batch
 
+    @torch.no_grad()
+    def detect_objects(self, batch: Batch):
+        if self.objectModel is None:
+            batch.objects = None
+            return batch
+
+        images = batch.images[self.depth_source]  # Expected shape: [B, C, H, W]
+
+        # 1. Calculate required padding to make H and W divisible by 32
+        _, _, h, w = images.shape
+        pad_h = (32 - h % 32) % 32
+        pad_w = (32 - w % 32) % 32
+
+        # 2. Pad images if necessary (pad format: [left, right, top, bottom])
+        if pad_h > 0 or pad_w > 0:
+            padded_images = pad(images, (0, pad_w, 0, pad_h), mode='constant', value=0)
+        else:
+            padded_images = images
+
+        # 3. Retrieve confidence threshold from loss config
+        confidence = [l.confidence_threshold for l in self.train_parameters['loss'] if l.name == 'scale'][0]
+
+        # 4. Run inference on padded images
+        results = self.objectModel(padded_images, conf=confidence, verbose=False)
+
+        batch_detections = []
+        for r in results:
+            img_detections = []
+            if r.boxes is not None and len(r.boxes) > 0:
+                for box in r.boxes:
+                    cls_id = r.names[int(box.cls.item())]
+                    bbox = box.xyxy[0].tolist()
+                    bbox[0] = min(bbox[0], float(w))
+                    bbox[1] = min(bbox[1], float(h))
+                    bbox[2] = min(bbox[2], float(w))
+                    bbox[3] = min(bbox[3], float(h))
+
+                    img_detections.append((cls_id, bbox))
+
+            # Kept as [] if no objects passed the threshold
+            batch_detections.append(img_detections)
+
+        batch.objects = [
+            batch_detections if i == self.depth_source else None
+            for i in range(self.number_cameras)
+        ]
+
+        return batch
+
     def buffer_all(self):
-        waitbar = tqdm(total=self.images.size + self.validation.size, desc='Buffering Images and Depths')
+        waitbar = tqdm(total=self.images.size + (self.validation.size if self.validation_parameters['visualize_validation'] else 0), desc='Buffering Images and Depths')
         idx_batch = 0
         if self.validation_parameters['visualize_validation'] and not self.validation.isfull:
             if self.validation_parameters['buffer_idx'] is not None:
                 indices = self.validation_parameters['buffer_idx']
             else:
-                indices = np.random.randint(low=0, high=self.cameras.total_frames,
-                                            size=self.validation_parameters['buffer_size'])
+                indices = np.random.choice(
+                    self.cameras.total_frames,
+                    size=self.validation_parameters['buffer_size'],
+                    replace=False,
+                )
             batch = self.load_images_by_indices(indices)
             batch = self.compute_depths(batch)
+            batch = self.detect_objects(batch)
             self.validation.add(batch)
-            waitbar.update(self.validation.size)
+            waitbar.update(self.validation_parameters['buffer_size'])
         while not self.images.isfull:
             batch = self.load_images(idx_batch)
             batch = self.compute_depths(batch)
+            batch = self.detect_objects(batch)
             self.buffer_batch(batch)
             idx_batch += 1
             waitbar.update(self.train_parameters['batch_size'])
@@ -140,55 +197,73 @@ class XCalib(nn.Module):
                        desc=f'Optimization of the parameters epoch {0}, lr: {self.optimizer.param_groups[0]["lr"]*1000:.3f}e-3, {self.LossModel}')
         self.cameras.initial_freeze()
         screen = None
+        screen_plot = None
+        total_steps = self.train_parameters['epochs'] * math.ceil(len(self.images)/self.train_parameters['batch_size'])
+        self.LossModel.set_total_steps(total_steps, epochs=self.train_parameters['epochs'])
+        total_steps = 0
         for e in range(self.train_parameters['epochs']):
             if e == int(self.train_parameters['unfreeze']*self.train_parameters['epochs']):
                 self.cameras.unfreeze()
                 self.optimizer.param_groups[0]["lr"] *= self.train_parameters['lr_after_unfreeze']
-
-            for j in range(math.ceil(len(self.images)/self.train_parameters['batch_size'])):
+                self.unfrozen = True
+            for batch in self.images:
                 waitbar.desc = (f'Optimization of the parameters epoch {e}, lr: {self.optimizer.param_groups[0]["lr"] * 1000:.3f}e-3, '
                                 f'{self.LossModel}')
                 optimization_step += 1
-                batch = self.images.get_batch(j)
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
                 # Wrap images
                 batch = self.wrap_frame_to_target(batch)
                 # Computes losses
-                loss = self.LossModel(batch, e, self.cameras)
+                loss = self.LossModel(batch, total_steps, self.cameras)
                 loss.backward()
-                self.optimizer.step()
-                self.step_scheduler()
+                if self.train_parameters['update_every_step'] or not self.unfrozen:
+                    self.optimizer.step()
+                    self.step_scheduler()
+                total_steps += 1
                 waitbar.update(self.train_parameters['batch_size'])
                 if self.validation_parameters['visualize_validation'] and optimization_step % self.validation_parameters['step_visualize'] == 0:
-                    screen, valid_image = self.validation_step(screen)
-                    if self.cfg.model['validation']['plot_loss']:
-                        self.LossModel.plot(save_path=str(self.output_path) + '/loss/',
-                                            name=f'Losses at step {optimization_step}')
+                    screen, screen_plot, valid_image, plot_image = self.validation_step(screen, screen_plot)
+            if not self.train_parameters['update_every_step'] and self.unfrozen:
+                self.optimizer.step()
+                self.step_scheduler()
         waitbar.close()
         self.cameras.freeze()
+        self.unfrozen = False
         self.optimized = True
         if self.validation_parameters['visualize_validation']:
-            screen.close()
+            screen, screen_plot, valid_image, plot_image = self.validation_step(screen, screen_plot)
+            if screen is not None:
+                screen.close()
             if self.cfg.model['validation']['plot_loss']:
-                self.LossModel.plot(save_path=str(self.output_path) + '/loss/',
-                                    name=f'Losses at step {optimization_step}')
+                screen_plot.close()
+                plot_image.show(name=f'Final Loss Curves', opencv=True)
             valid_image.show(name=f'Final result', opencv=True)
+        if self.cfg.model['validation']['save_loss']:
+            self.LossModel.save_losses(self.output_path / 'loss', per_epoch=True)
         if self.cfg.run_parameters['save_calib']:
             self.save_cameras_rig()
         # Clear buffers
         self.images.clear()
         self.validation.clear()
 
-    def validation_step(self, screen):
+    def validation_step(self, screen, screen_plot):
         batch_val = self.validation.get_batch(0)
         batch_val = self.wrap_frame_to_target(batch_val)
         img = self.validation_module(batch_val)
+        self.LossModel(batch_val, 0, self.cameras, training=False)
         if screen is None:
             screen = img.show(name=f'Optimization on going...', opencv=True, asyncr=True)
         else:
             screen.update(img)
-        return screen, img
+        if self.cfg.model['validation']['plot_loss']:
+            if screen_plot is None:
+                screen_plot, plot_image = self.LossModel.plot()
+            else:
+                screen_plot, plot_image = self.LossModel.plot(screen_plot)
+        else:
+            plot_image = None
+        return screen, screen_plot, img.cpu(), plot_image.cpu()
 
     def wrap_all(self):
         old_setup = self.cameras.cfg
@@ -236,10 +311,40 @@ class XCalib(nn.Module):
         return batch
 
     def define_optimizers(self, lr=None):
-        parameters = self.cameras.named_parameters()
+        """
+                Uses AdamW as the optimal optimizer for metric/rotation manifold parameters.
+                Applies CosineAnnealingLR for stable convergence near local minima.
+                """
         lr_start = self.train_parameters['lr'] if lr is None else lr
-        self.optimizer = torch.optim.Adam(parameters, lr=lr_start)
-        self.scheduler = ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
+
+        parameters = filter(lambda p: p.requires_grad, self.cameras.parameters())
+        weight_decay = self.train_parameters.get('lr_decay', 1e-4)
+
+        self.optimizer = torch.optim.AdamW(
+            parameters,
+            lr=lr_start,
+            weight_decay=weight_decay,
+            betas=(0.9, 0.999),
+            eps=1e-8
+        )
+
+        # self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        #     self.optimizer, T_max=self.train_parameters['epochs'], eta_min=1e-6)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
+        # return {
+        #     "optimizer": optimizer,
+        #     "lr_scheduler": {
+        #         "scheduler": scheduler,
+        #         "interval": "epoch",
+        #         "frequency": 1,
+        #     },
+        # }
+
+    # def define_optimizers(self, lr=None):
+    #     parameters = self.cameras.named_parameters()
+    #     lr_start = self.train_parameters['lr'] if lr is None else lr
+    #     self.optimizer = torch.optim.Adam(parameters, lr=lr_start)
+    #     self.scheduler = ExponentialLR(self.optimizer, gamma=self.train_parameters['lr_decay'])
 
     def step_scheduler(self):
         if self.scheduler is not None:
@@ -318,14 +423,77 @@ class ImageBuffer:
         self.images = {k: self.images[k] for k in self.buffer_idx}
 
 
+class ObjectsBuffer:
+    def __init__(self, size: int, batch_size: int):
+        self.size = size
+        self.objects = {}
+        self.batch_size = batch_size
+        self.buffer_idx = []
+
+    def __len__(self):
+        return len(self.buffer_idx)
+
+    def __add__(self, *args):
+        objects, indices = args[0]
+        new_indices = [i for i in indices if i not in set(self.buffer_idx)]
+
+        if len(self) <= self.size - len(new_indices):
+            self.objects.update({i: obj for i, obj in zip(indices, objects)})
+            self.buffer_idx.extend(new_indices)
+        else:
+            pop_keys = self.buffer_idx[:len(self) + len(new_indices) - self.size]
+            for k in pop_keys:
+                self.objects.pop(k, None)
+            self.objects.update({i: obj for i, obj in zip(indices, objects)})
+            self.buffer_idx = self.buffer_idx[len(self) + len(new_indices) - self.size:] + new_indices
+
+        return self
+
+    def clear(self):
+        self.objects = {}
+        self.buffer_idx = []
+
+    def get_batch(self, idx: int):
+        """
+        Get objects by batch index.
+        Returns a list of object detections for the requested batch slice
+        along with the corresponding frame/image indices.
+        """
+        start = (idx * self.batch_size) % self.size
+        end = (start + self.batch_size) % self.size
+
+        if end <= start:
+            batch_indices = self.buffer_idx[start:] + self.buffer_idx[:end]
+        else:
+            batch_indices = self.buffer_idx[start:end]
+
+        objects = [self.objects[i] for i in batch_indices]
+        return objects, batch_indices
+
+    def __getitem__(self, idx: int):
+        if idx not in self.buffer_idx:
+            assert idx < len(self), "Index out of range and not in buffer"
+            index = self.buffer_idx[idx]
+        else:
+            index = idx
+        return self.objects[index]
+
+    def sort(self):
+        self.buffer_idx.sort()
+        self.objects = {k: self.objects[k] for k in self.buffer_idx}
+
+
 class DataCollector:
     def __init__(self, cfg):
         self.cams = []
         self.modality = []
+        self._nb_batch = math.ceil(cfg.buffer_size / cfg.batch_size)
         for i in range(cfg.nb_cam):
             buffer_dict = {'images': ImageBuffer(cfg.buffer_size, cfg.batch_size)}
             if i == cfg.depth_source:
                 buffer_dict['depths'] = ImageBuffer(cfg.buffer_size, cfg.batch_size)
+                buffer_dict['objects'] = ObjectsBuffer(cfg.buffer_size, cfg.batch_size)
+
             self.__setattr__(f'{cfg.cameras_names[i]}', buffer_dict)
             self.cams.append(cfg.cameras_names[i])
 
@@ -336,8 +504,8 @@ class DataCollector:
             cam_buffer['images'] = cam_buffer['images'] + (images, indices)
             if 'depths' in cam_buffer and batch.depths is not None:
                 cam_buffer['depths'] = cam_buffer['depths'] + (batch.depths[i], indices)
-            if 'flows' in cam_buffer and batch.flows is not None:
-                cam_buffer['flows'] = cam_buffer['flows'] + (batch.flows[i], indices)
+            if 'objects' in cam_buffer and batch.objects is not None:
+                cam_buffer['objects'] = cam_buffer['objects'] + (batch.objects[i], indices)
 
     @property
     def size(self):
@@ -359,7 +527,7 @@ class DataCollector:
         indices = []
         cameras = []
         depths = []
-        flows = []
+        objects = []
         images = []
         for cam in self.cams:
             cameras.append(cam)
@@ -371,12 +539,27 @@ class DataCollector:
                 depths.append(depth)
             else:
                 depths.append(None)
+            if 'objects' in cam_buffer:
+                obj, _ = cam_buffer['objects'].get_batch(idx)
+                if len(obj) > 0:
+                    if all(o is None for o in obj):
+                        objects.append(None)
+                    else:
+                        objects.append(obj)
+                else:
+                    objects.append(None)
+
             indices.append(idx_seq)
         return Batch(images=images,
                      indices=indices,
                      cameras=cameras,
                      modality=self.modality,
-                     depths=depths if depths else None, flows=flows if flows else None)
+                     objects=objects if objects else None,
+                     depths=depths if depths else None)
+
+    def __iter__(self) -> Batch:
+        for i in range(self._nb_batch):
+            yield self.get_batch(i)
 
     def __len__(self):
         return len(self.__getattribute__(f'{self.cams[0]}')['images'])

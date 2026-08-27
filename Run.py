@@ -1,10 +1,13 @@
-import os
 import warnings
+import warnings
+
 import torch
 
 from model.XCalib import XCalib
 from options.options import get_options
-os.environ["PYTORCH_ALLOC_CONF"] = 'expandable_segments:True'
+
+
+# os.environ["PYTORCH_ALLOC_CONF"] = 'expandable_segments:True'
 
 
 def fit_cams(config) -> XCalib:
@@ -24,3 +27,4 @@ if __name__ == "__main__":
         xcalib = XCalib(cfg=cfg).to(cfg.model['device'])
     if cfg.run_parameters['mode'] in ['all_in_one', 'registration_only']:
         xcalib.wrap_all()
+

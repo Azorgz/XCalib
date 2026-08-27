@@ -9,7 +9,7 @@
 ### Optical Flow loss for coarse prepositioning (OFF after epochs_total / 2 epochs).
 flow:
   weight: 2.5
-  disable_after : 0.7
+  disable_after : null
   enable_after: 0
 
 
@@ -37,9 +37,20 @@ image:
 
 #### Regularization term to avoid large motions drift (OFF after unfreeze).
 reg:
-    weight: 2.0
+    weight: 1.0
     disable_after: null
     enable_after: 0
+
+### Scale loss to avoid scale drift (OFF after unfreeze).
+scale:
+    weight: 1.0
+    disable_after: null
+    enable_after: 0
+    confidence_threshold: 0.7
+    class_heights:
+      person: 1.70
+      car: 1.50
+
 
 
 

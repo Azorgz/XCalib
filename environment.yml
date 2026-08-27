@@ -7,9 +7,13 @@ dependencies:
   - python=3.11.9
   - pip
   - pip:
-      - tqdm
-      - jaxtyping
-      - git+https://github.com/Azorgz/ImagesCameras.git
-      - cupy
+      - ultralytics
+      - cupy-cuda12x
       - timm
       - huggingface_hub
+      - seaborn
+      - tqdm
+      - jaxtyping
+      - panda
+      - scipy
+      - git+https://github.com/Azorgz/ImagesCameras.git

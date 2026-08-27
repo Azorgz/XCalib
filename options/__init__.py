@@ -34,7 +34,7 @@ def get_validation_opt(opt):
                     'nb_cam': opt['data'].nb_cam,
                     'mode_fusion': opt['model']['validation']['mode_fusion'],
                     'color_map_infrared': opt['model']['validation']['color_map_infrared'],
-                    'batch_size': opt['model']['validation']['buffer_size'],
+                    'batch_size': opt['model']['train']['batch_size'],
                     'depth_source': opt['model']['depth_source'],
                     'cameras_names': opt['data'].cameras_name,
                     'buffer_idx': opt['model']['validation']['buffer_idx'],

@@ -146,6 +146,8 @@ class CamerasCfg:
     normalize_infrared: bool = False
     equalize_visible: bool = False
     equalize_infrared: bool = False
+    translation_order: int = 1
+    focal_fct_fov: bool = True
     from_file: str | Path | None = None
     files: list[list[Path | str]] | None = None
 
@@ -159,14 +161,15 @@ class Batch(Manipulable):
     frame_paths: list[list[str | Path | None]] | None = None
     flows: list[list[Float[Tensor, "batch channel height=_ width=_"]] | None] | None = None
     depths: list[list[Float[Tensor, "batch channel height=_ width=_"]] | None] | None = None
+    objects: list[list[Float[Tensor, "batch channel height=_ width=_"]] | None] | None = None
     projections: list[Float[Tensor, "batch channel height=_ width=_"] | None] | None = None
 
 
-def collate_batch_fn(batches: list[dict]):
-    return {'videos': torch.cat([b['videos'] for b in batches], dim=0),
-            'indices': torch.cat([b['indices'] for b in batches], dim=0),
-            'datasets': batches[0]['datasets'],
-            'cameras': batches[0]['cameras'],
-            'image_sizes': batches[0]['image_sizes'],
-            'frame_paths': batches[0]['frame_paths'],
-            'modality': batches[0]['modality']}
+# def collate_batch_fn(batches: list[dict]):
+#     return {'videos': torch.cat([b['videos'] for b in batches], dim=0),
+#             'indices': torch.cat([b['indices'] for b in batches], dim=0),
+#             'datasets': batches[0]['datasets'],
+#             'cameras': batches[0]['cameras'],
+#             'image_sizes': batches[0]['image_sizes'],
+#             'frame_paths': batches[0]['frame_paths'],
+#             'modality': batches[0]['modality']}

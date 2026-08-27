@@ -73,7 +73,7 @@ You can use this code to reproduce our results, compare with baseline methods, o
 We recommend using a Conda environment.
 
 ```bash
-git clone https://github.com/Azorgz/XCalib2.git
+git clone https://github.com/Azorgz/XCalib.git
 cd XCalib
 
 # Create conda env
