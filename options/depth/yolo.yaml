@@ -1,0 +1,3 @@
+name: yolo
+
+model: yolo26x-depth.pt

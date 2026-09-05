@@ -1,4 +1,4 @@
-name_experiment: CVC14
+name_experiment: MyDataset
 
 model:
   target: 0 # idx of the target camera, must be <= Cameras_number - 1
@@ -32,7 +32,7 @@ model:
     buffer_idx: #[0, 29, 45, 50]  # LIST of idx of the images used for validation or null. Overrides buffer_size
 
 data:
-  name: MyDataset  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
+  name: FLIR_DAY  # LYNRED_NIGHT, LYNRED_DAY, FLIR_DAY, FLIR_NIGHT, MyDataset
   nb_cam: 2
   normalize_visible: True
   normalize_infrared: True

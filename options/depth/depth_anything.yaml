@@ -1,0 +1,5 @@
+name: depth_anything
+
+input_size: 518
+scene: outdoor  # indoor, outdoor
+encoder: vitb  # vits,vitb, vitl
